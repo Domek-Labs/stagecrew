@@ -4,6 +4,11 @@
 
 Pure-reader plugin: all coding standards live in your repo's `AGENTS.md`, not in this plugin. You bootstrap once per repo, then any issue can flow through the loop.
 
+**Multi-Type-System seit v4.1.0:** dasselbe 5-Stage-Skelett funktioniert sowohl fuer
+Code-Loops (Software-Implementation) als auch fuer Research-Loops (Erkenntnis-Generierung
+mit Test-Matrix). Pro Type ein eigenes Issue-Template + Subagent-Brief — siehe Sektion
+"Loop-Types" unten.
+
 ## Quickstart
 
 ```
@@ -26,14 +31,35 @@ That is the entire loop. Bootstrap → Genesis → Execution.
 
 If you do not know which sub-skill you need, just call `/loop` — it asks one clarifying question and routes you. Triggers on "loop", "loop engineering", "issue durchziehen", "spec build", "coding loop", "github workflow".
 
+## Loop-Types (v4.1.0)
+
+| Type | Wann | Deliverable | Template | Implementer-Brief |
+|------|------|-------------|----------|-------------------|
+| `code` (Default) | Feature, Fix, Refactor, Dependency-Update | PR mit Code-Diff + Tests | `skills/create-issue/references/issue-templates/code.md` | `skills/work-issue/references/subagent-briefs/code-implementer.md` |
+| `research` | Erkenntnis-Generierung, Test-Matrix-Studie, Bibliotheks-Vergleich, API-Verhalten-Probe | `docs/research/<topic>-<date>.md` + Folge-Issue-Spec | `skills/create-issue/references/issue-templates/research.md` | `skills/work-issue/references/subagent-briefs/research-implementer.md` |
+
+Type-Auswahl:
+- `/create-issue --type=<code|research> "<idea>"` — explizit
+- Sonst Auto-Inference aus Keywords im User-Text (`feat`/`fix` -> code, `recherchiere`/`benchmark` -> research)
+- Sonst `loop_types.default` aus AGENTS.md (typisch `code`)
+
+`/work-issue` liest das `loop-type:<type>`-Label vom Issue und dispatched zum
+passenden Subagent-Brief. Tester/Critic/Closer-Stages bleiben strukturell gleich,
+pruefen aber type-spezifische Kriterien (Build-GREEN vs Doc-Quality, Code-Diff-Quality
+vs Folge-Issue-Spec-Startbarkeit).
+
+Erprobt in:
+- Code-Loops: 13 PRs in `dscheinecker-at7media/personal-ai-bot` (2026-06-26)
+- Research-Loop: `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
+
 ## Roadmap
 
-- **v4.1.0 — Multi-Type-Loops** (Issue [#22](https://github.com/dscheinecker-at7media/dominik/issues/22)): the same 5-stage skeleton applied to non-code loops — Text-Loop, Decision-Loop, Diagnostic-Loop. Same Validator/Implementer/Tester/Critic/Closer pattern, different domain.
-- **v4.2.0 — Public Flip** (Issue [#23](https://github.com/dscheinecker-at7media/dominik/issues/23)): LICENSE, secret sweep, public-ready repo rename.
+- **v4.1.0 — Multi-Type-Loops (Code + Research)** — Issue #2 in diesem Repo. **DONE** (mit diesem PR).
+- **v4.2.0 — Public Flip** (Issue #3): LICENSE, secret sweep, public-ready repo rename, plus Text/Decision/Diagnostic-Type-Roadmap als Folge-Issues.
 
 ## License
 
-MIT (LICENSE file lands with Issue #23).
+MIT (LICENSE file lands with Issue #3 / v4.2.0).
 
 ## Status
 

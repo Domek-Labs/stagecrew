@@ -28,6 +28,31 @@ work-issue:
     - "Code passes `node --check` (oder Repo-Aequivalent)"
     - "Documentation in README/CLAUDE.md aktualisiert"
     - "No new secrets in repo (Secret-Check passed)"
+
+# Multi-Type-Loop-System (seit Plugin v4.1.0)
+# Enabled-Types: 'code' (Default, Software-Implementation) und 'research'
+# (Erkenntnis-Generierung mit Test-Matrix). Pro Type kann ein Overrides-Block
+# Standards-Werte ueberschreiben (z.B. ac_templates: [] fuer docs-only Research).
+loop_types:
+  enabled: [code, research]
+  default: code
+  type_overrides:
+    research:
+      ac_templates: []                     # docs-only -> Issue liefert Ersatz-AC
+      smoke_test: "wc -w docs/research/*.md"   # Doc-Quality statt Build-GREEN
+    # Roadmap (v4.2.0+) — auskommentiert bis implementiert:
+    # text:
+    #   ac_templates:
+    #     - "markdownlint passt"
+    #     - "linkcheck gruen"
+    # decision:
+    #   ac_templates:
+    #     - "ADR-Format korrekt"
+    #     - "Constraint-Coverage vollstaendig"
+    # diagnostic:
+    #   ac_templates:
+    #     - "Hypothesen reproduzierbar"
+    #     - "Fix-Spec klar"
 ---
 
 # Agent Instructions for <repo-name>

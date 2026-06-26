@@ -1,12 +1,12 @@
 ---
 name: create-issue
-description: "GitHub-Issue aus Feature-Wunsch / Idee erstellen, mit vollem Spec-Standard (Idee/Spec/AC/Files-To-Touch/Test-Plan/Out-of-Scope). Multi-Repo. AGENTS.md im Repo überschreibt Default-Templates. v3.2.0 Auto-Injection von AGENTS.md ac_templates in den AC-Block plus 6-Trigger-Issue-Type-Detection (docs/epic/secret/mcp/live-ping/live-service). Codebase-memory liefert automatisch Files-To-Touch-Vorschläge und Hotspots. Optional Auto-Übergabe an /work-issue. Trigger: /create-issue, create issue, neues issue, issue anlegen, feature anlegen, spec issue, idee als ticket."
+description: "GitHub-Issue aus Feature-Wunsch / Idee erstellen, mit vollem Spec-Standard (Idee/Spec/AC/Files-To-Touch/Test-Plan/Out-of-Scope). Multi-Repo. AGENTS.md im Repo überschreibt Default-Templates. v3.3.0 Multi-Type-System: --type=<code|research> Flag plus Auto-Inference. Templates aus references/issue-templates/<type>.md. v3.2.0 Auto-Injection von AGENTS.md ac_templates in den AC-Block plus 6-Trigger-Issue-Type-Detection (docs/epic/secret/mcp/live-ping/live-service). Codebase-memory liefert automatisch Files-To-Touch-Vorschläge und Hotspots. Optional Auto-Übergabe an /work-issue. Trigger: /create-issue, create issue, neues issue, issue anlegen, feature anlegen, spec issue, idee als ticket."
 ---
 
 # /create-issue — Idee → spezifiziertes GitHub-Issue
 
 **Typ:** Issue-Genesis / Spec-Engineering
-**Version:** v3.2.0 (Auto-Injection + Issue-Type-Detection)
+**Version:** v3.3.0 (Multi-Type-System: Code + Research)
 
 ## Zweck
 
@@ -18,12 +18,67 @@ Spec-Standard ist deckungsgleich zu dem, was `/work-issue`s Validator als GO-Kri
 
 ```
 /create-issue "voice-diff-review für mei"
+/create-issue --type=research "benchmark ollama tool-use"
 /create-issue --repo dscheinecker-at7media/personal-ai-bot "scheduler verbessern"
 /create-issue                                  # → fragt nach Idee + Repo
 /create-issue --refine <num> [--repo <slug>]   # → bestehendes Issue um Spec-Felder erweitern
 ```
 
 **Argument-Parsing:** analog `/work-issue` (GitHub-Syntax, `--repo` Flag, cwd-Fallback).
+
+**`--type=<code|research>` Flag (NEU v3.3.0):** waehlt das Issue-Template aus
+`references/issue-templates/<type>.md`. Wenn nicht gesetzt: Auto-Inference aus
+User-Text (siehe naechste Sektion).
+
+## Loop-Type-Resolution (NEU v3.3.0)
+
+In dieser Reihenfolge:
+
+1. **Explizites Flag** — `--type=<code|research>`
+2. **Auto-Inference aus User-Text** (Keyword-Heuristik)
+3. **AGENTS.md `loop_types.default`** (Fallback, typisch `code`)
+4. **Bei mehrdeutigem Input:** Skill fragt explizit "Code-Loop oder Research-Loop?"
+
+### Auto-Inference-Keywords
+
+| Keywords im User-Text | Inferred-Type |
+|----------------------|---------------|
+| "feat", "feature", "fix", "bug", "refactor", "implement", "add X", "build X" | `code` |
+| "recherchiere", "untersuche", "benchmark", "vergleich", "debug X (root-cause unklar)", "research", "explore", "evaluate" | `research` |
+
+Bei Score-Gleichstand zwischen Code und Research → explizit fragen.
+
+### Unterstuetzte Types (v3.3.0)
+
+Skill liest `AGENTS.md` `loop_types.enabled`. In v3.3.0 sind nur `code` und `research`
+implementiert. Bei `--type=text|decision|diagnostic`:
+
+```
+Error: loop-type '<type>' ist in v3.3.0 noch nicht implementiert.
+Roadmap-Issues:
+  - Text-Loop:       <repo>/issues?label=loop-type,roadmap,text
+  - Decision-Loop:   <repo>/issues?label=loop-type,roadmap,decision
+  - Diagnostic-Loop: <repo>/issues?label=loop-type,roadmap,diagnostic
+Verwende --type=code oder --type=research, oder mache ein neues Issue
+fuer den Type-Roadmap-Vorschlag.
+```
+
+### Template-Loader
+
+Skill laedt `skills/create-issue/references/issue-templates/<type>.md`. Frontmatter
+des Templates wird gelesen (`loop-type: <type>`), Body wird als Render-Schema
+genutzt. Pflicht-Sektionen + Placeholder definieren die Spec-Dialog-Felder.
+
+### Issue-Label-Setting
+
+Beim `gh issue create` wird Label `loop-type:<type>` gesetzt (zusaetzlich zu Trigger-Detection-Labels).
+
+Wenn das Label noch nicht im Repo existiert, vorher anlegen:
+
+```bash
+gh label create "loop-type:code" --repo <slug> --color 0E8A16 --description "Software-Implementation-Loop" --force
+gh label create "loop-type:research" --repo <slug> --color 5319E7 --description "Research/Findings-Loop" --force
+```
 
 ## Workflow
 
@@ -53,7 +108,19 @@ Gleicher Block wie `/work-issue`:
 
 ### d) AGENTS.md-Read
 
-Im Repo-Root lesen (existiert garantiert nach Schritt b). Frontmatter laden fuer `ac_templates` und `default_oos` — wird im Spec-Dialog als Default vorgeschlagen.
+Im Repo-Root lesen (existiert garantiert nach Schritt b). Frontmatter laden fuer `ac_templates`, `default_oos`, `loop_types` — wird im Spec-Dialog als Default vorgeschlagen.
+
+### d2) Loop-Type-Resolution (NEU v3.3.0)
+
+Vor dem Spec-Dialog Loop-Type bestimmen (siehe Sektion "Loop-Type-Resolution" oben):
+
+1. Explizites `--type=<X>` Flag pruefen.
+2. Sonst Auto-Inference aus User-Text.
+3. Sonst `loop_types.default` aus AGENTS.md (Fallback `code`).
+4. Bei mehrdeutigem Input: explizit fragen.
+
+Template laden aus `skills/create-issue/references/issue-templates/<type>.md`.
+Sektions-Schema + Placeholder-Liste fuer den Spec-Dialog kommen aus dem Template-Body.
 
 ### e) Spec-Dialog (interaktiv, 7 Fragen)
 
@@ -84,8 +151,10 @@ gh issue create --repo <slug> \
   --title "<title>" \
   --body "<rendered-body>" \
   --milestone "<milestone>" \
-  --label "<labels>"
+  --label "loop-type:<type>,<other-labels>"
 ```
+
+Label `loop-type:<type>` ist Pflicht — `/work-issue` braucht es zur Subagent-Brief-Auswahl. Wenn das Label noch nicht existiert: vorher `gh label create` (siehe Sektion "Issue-Label-Setting" oben).
 
 ### h) Optional: Auto-Übergabe an /work-issue
 
@@ -119,54 +188,36 @@ Wenn `<repo>` noch nicht in `~/.claude/work-issue-paths.yaml`:
 
 Damit ist der Repo bereit fuer `/work-issue` direkt im Anschluss.
 
-## Issue-Body-Template (vollständig)
+## Issue-Body-Templates (Multi-Type seit v3.3.0)
 
-Exakt dieses Schema verwenden — `/work-issue`s Validator pruefen genau diese Sektionen:
+Templates liegen extern in `references/issue-templates/<type>.md` und werden zur
+Render-Zeit geladen. v3.3.0 unterstuetzt zwei Types:
 
-```markdown
-## Idee (Why)
+| Type | Template-File | Wann |
+|------|---------------|------|
+| `code` | `references/issue-templates/code.md` | Software-Implementation-Tasks (Feature, Fix, Refactor) |
+| `research` | `references/issue-templates/research.md` | Erkenntnis-Generierung, Test-Matrix-Studie, Bibliotheks-Vergleich |
 
-<strategischer Kontext, User-Pain, Outcome>
+Beide Templates definieren die Pflicht-Sektionen, die `/work-issue`s Validator strict pruefen.
 
-## Spec (What)
+### Gemeinsame Pflicht-Sektionen (alle Types)
 
-<technische Spec, Architektur, betroffene Komponenten>
+- `## Idee (Why)`
+- `## Spec (What)`
+- `## Akzeptanzkriterien`
+- `## Files to Touch`
+- `## Test-Plan`
+- `## Dependencies / Blocks`
+- `## Out of Scope`
+- `## Standards-Override` (optional)
+- `## Standards-Notes` (optional, aber bei Research-Type via Template Pflicht)
 
-## Akzeptanzkriterien
+Type-spezifische Unterschiede siehe Template-Files.
 
-- [ ] <konkret, testbar>
-- [ ] <konkret, testbar>
-- [ ] ...
+### Roadmap (v4.2.0+)
 
-## Files to Touch
-
-- `<pfad/a.ts>` — <kurz: was passiert dort>
-- `<pfad/b.ts>` — <kurz>
-- ...
-
-## Test-Plan
-
-<welche Smoke-Tests, welcher Build-Command, was beweist Success>
-
-## Dependencies / Blocks
-
-- depends on #<X>
-- blocks #<Y>
-
-## Out of Scope
-
-- <was explizit NICHT>
-- ...
-
-## Standards-Override (optional)
-
-```yaml
-# nur wenn dieses Issue von AGENTS.md abweichen soll
-work-issue:
-  syntax_check: "<custom>"
-  smoke_test: "<custom>"
-```
-```
+`text`, `decision`, `diagnostic` Templates sind noch nicht implementiert. Siehe
+Roadmap-Issues im Repo (Label `loop-type` + `roadmap`).
 
 ## Standards-Quelle
 
@@ -273,3 +324,7 @@ Damit faengt Refine-Mode genau den Spec-Gap-Pattern ab, der die Producer-Side bi
 - `skills/work-issue/SKILL.md` — Execution-Phase
 - `skills/work-issue/references/repo-registry.yaml.example`
 - `skills/init-agents/references/AGENTS.md.template`
+- `skills/create-issue/references/issue-templates/code.md` — Code-Loop-Template
+- `skills/create-issue/references/issue-templates/research.md` — Research-Loop-Template
+- `skills/work-issue/references/subagent-briefs/code-implementer.md` — Code-Implementer-Brief
+- `skills/work-issue/references/subagent-briefs/research-implementer.md` — Researcher-Brief

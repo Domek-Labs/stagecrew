@@ -1,11 +1,12 @@
 ---
 name: work-issue
-description: "GitHub Issue durch 5-Stage Spec→Build-Loop ziehen (Validator → Implementer → Tester → Critic → Closer). Multi-Repo. Pure-Reader v3.1.0 — alle Standards-Werte kommen aus AGENTS.md im Repo-Root (keine Skill-Defaults). Pflicht-Pre-Flight checkt AGENTS.md-Existenz, YAML-Parseability und Vollstaendigkeit. Codebase-memory Pflicht-Pre-Flight. Auto-PR + Merge bei APPROVE. Trigger: /work-issue, work issue, loop engineering, issue durchziehen, spec build loop."
+description: "GitHub Issue durch 5-Stage Spec→Build-Loop ziehen (Validator → Implementer → Tester → Critic → Closer). Multi-Repo. Pure-Reader v3.1.0 — alle Standards-Werte kommen aus AGENTS.md im Repo-Root (keine Skill-Defaults). v3.2.0 Multi-Type-System: liest loop-type:<type>-Label und dispatched zu type-spezifischem Subagent-Brief (code|research). Pflicht-Pre-Flight checkt AGENTS.md-Existenz, YAML-Parseability und Vollstaendigkeit. Codebase-memory Pflicht-Pre-Flight. Auto-PR + Merge bei APPROVE. Trigger: /work-issue, work issue, loop engineering, issue durchziehen, spec build loop."
 ---
 
 # /work-issue — Spec→Build-Loop fuer GitHub-Issues
 
 **Typ:** Loop-Engineering / Autonome Issue-Implementation
+**Version:** v3.2.0 (Multi-Type-System: Code + Research)
 
 ## Zweck
 
@@ -118,10 +119,11 @@ In dieser Reihenfolge ausfuehren:
 1. **Repo-Registry-Lookup** → `repo_path` aus `~/.claude/work-issue-paths.yaml`. Wenn fehlt: einmal nach Pfad fragen.
 2. **Codebase-Memory-Pre-Flight** (siehe oben: list_projects → index/freshness → health-check).
 3. **AGENTS.md-Pflicht-Check (NEU v3.1.0)** — siehe naechste Sektion.
-4. **Default-Branch ermitteln:** `gh api repos/<slug> --jq .default_branch` (Cross-Check gegen AGENTS.md-Wert).
-5. **`dev`-Branch-Existenz pruefen:** `gh api repos/<slug>/branches/dev` → 200 oder 404 (Info-only).
-6. **Live-Path-Drift-Check** (wenn `live_path != repo_path`): `diff -r <live_path> <repo_path>` → bei Drift Warnung an User vor Stage 1.
-7. **Channel-Inbound-Detection:** wenn `<channel>`-Tag → kurzer Reply "Loop fuer <slug>#<n> startet, Stage 1 laeuft."
+4. **Loop-Type-Resolution (NEU v3.2.0)** — siehe naechste Sektion.
+5. **Default-Branch ermitteln:** `gh api repos/<slug> --jq .default_branch` (Cross-Check gegen AGENTS.md-Wert).
+6. **`dev`-Branch-Existenz pruefen:** `gh api repos/<slug>/branches/dev` → 200 oder 404 (Info-only).
+7. **Live-Path-Drift-Check** (wenn `live_path != repo_path`): `diff -r <live_path> <repo_path>` → bei Drift Warnung an User vor Stage 1.
+8. **Channel-Inbound-Detection:** wenn `<channel>`-Tag → kurzer Reply "Loop fuer <slug>#<n> startet (`loop-type:<type>`), Stage 1 laeuft."
 
 ### AGENTS.md-Pflicht-Check (NEU v3.1.0)
 
@@ -146,6 +148,39 @@ Vor Stage 1 in dieser Reihenfolge pruefen — jeder Fehler ist ein **STOP-Verdic
 
 Bei allen drei Checks OK: Frontmatter cachen und Body fuer Stage-Briefings vorhalten. Dieser Cache wird als Quelle fuer alle Standards-Werte in den Subagent-Briefings genutzt.
 
+### Loop-Type-Resolution (NEU v3.2.0)
+
+Vor Stage 1 den Issue-Loop-Type ermitteln. In dieser Reihenfolge:
+
+1. **Issue-Label** — `gh issue view <num> --repo <slug> --json labels --jq '.labels[].name'` → suche `loop-type:<type>` Prefix.
+2. **Body-Frontmatter-Fallback** — Wenn Issue-Body mit `---\nloop-type: <type>\n---` startet → diesen Wert nutzen. (Kommt vor wenn Issue manuell ohne Skill angelegt wurde.)
+3. **AGENTS.md-Default-Fallback** — `loop_types.default` aus AGENTS.md (typisch `code`).
+4. **Letzter Fallback** — `code` (Backwards-Compat fuer Pre-v3.2.0-Issues).
+
+Validierung gegen `loop_types.enabled` aus AGENTS.md:
+- Wenn resolved-Type **nicht** in `enabled`: STOP-Verdict:
+  > Issue hat `loop-type:<X>`, aber AGENTS.md `loop_types.enabled` enthaelt nur `<liste>`. Bitte AGENTS.md erweitern (`/init-agents --refine`) oder Issue-Label korrigieren.
+
+- Wenn resolved-Type ist `text`/`decision`/`diagnostic` (Roadmap-Types): STOP-Verdict mit Roadmap-Hint:
+  > Loop-Type `<type>` ist Roadmap, noch nicht implementiert. Aktuell unterstuetzt: code, research. Verfolge Roadmap in den Repo-Issues mit Label `loop-type` + `roadmap`.
+
+Bei OK: Resolved-Type in State-Tracker schreiben (`loop_type` Feld). Subagent-Brief-Loader benutzt diesen Wert.
+
+### Subagent-Brief-Loader (NEU v3.2.0)
+
+Pro Stage 2 (Implementer) wird der Brief aus `references/subagent-briefs/<loop_type>-implementer.md` geladen. Briefe haben Placeholder (`{{branch_pattern}}`, `{{syntax_check}}`, etc.) die zur Render-Zeit aus dem AGENTS.md-Cache + State-Tracker ersetzt werden.
+
+| Loop-Type | Subagent-Brief-File |
+|-----------|---------------------|
+| `code` | `references/subagent-briefs/code-implementer.md` |
+| `research` | `references/subagent-briefs/research-implementer.md` |
+
+Tester / Critic / Closer-Stages bleiben **strukturell gleich**, aber pruefen type-spezifische Kriterien:
+- `code`: Build GREEN via `smoke_test`, Code-Diff-Quality
+- `research`: Doc-Quality-Check (Wortzahl, Test-Matrix, Working-Setup oder Hypothese-Roadmap)
+
+Die Type-spezifischen Pruef-Kriterien sind in den jeweiligen Subagent-Brief-Files dokumentiert (Sektionen "Tester-Pruef-Kriterien" und "Critic-Pruef-Kriterien").
+
 ## State-Tracker
 
 `/tmp/loop-<repo_slug_safe>-<issue>.json`:
@@ -158,6 +193,7 @@ Bei allen drei Checks OK: Frontmatter cachen und Body fuer Stage-Briefings vorha
   "branch": null,
   "default_branch": "main",
   "pr_base": "main",
+  "loop_type": "code",
   "agents_md_loaded": true,
   "standards": { "branch_pattern": "...", "syntax_check": "...", ... },
   "started_at": "ISO",
@@ -167,6 +203,8 @@ Bei allen drei Checks OK: Frontmatter cachen und Body fuer Stage-Briefings vorha
   "verdicts": {}
 }
 ```
+
+`loop_type` ist seit v3.2.0 Pflicht — siehe Loop-Type-Resolution oben.
 
 `repo_slug_safe` = `owner_repo` (Slash → Underscore). Update nach jeder Stage.
 
@@ -202,33 +240,27 @@ Wichtig: **alle Standards-Werte in den Briefings sind Placeholder** (`<branch_pa
 - STOP → Loop pausiert, Telegram-Text an User mit Gruenden + Vorschlag `/create-issue --refine <num>`.
 - GO → Stage 2.
 
-### Stage 2 — Implementer
+### Stage 2 — Implementer (Type-Dispatch seit v3.2.0)
 
-**Briefing (Template):**
-> Du implementierst Issue #N im Repo `<slug>` (lokal: `<repo_path>`). Validator hat GO gegeben.
->
-> Standards aus AGENTS.md/L2:
-> - `branch_pattern`: `<branch_pattern>`
-> - `commit_format`: `<commit_format>`
-> - `syntax_check`: `<syntax_check>`
-> - `hard_gates`: `<hard_gates>`
->
-> 1. `cd <repo_path> && git fetch && git checkout -b <branch_pattern-aufgeloest> <default_branch>`
-> 2. Code-Conventions via `search_code` aus codebase-memory checken (Sibling-Funktionen, Style).
-> 3. Implementiere nach Spec.
-> 4. Syntax-Check: `<syntax_check>`.
-> 5. Secret-Check: `git diff --cached | grep -iE '(ghp_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{40,}|TELEGRAM_BOT_TOKEN=[0-9]+:[A-Za-z0-9_-]+|API_KEY=[a-zA-Z0-9]{20,})'` → ABORT bei Match.
-> 6. Commit nach `<commit_format>` mit `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` + `Refs #N`.
-> 7. Push.
-> 8. Issue-Kommentar `## [stage:implementer] ready for test` mit Branch + Commit + AC-Selfcheck + verwendeten Standards-Werten.
->
-> KEIN docker/test-run, KEIN PR. Parent-Output: max 200 Woerter.
+**Brief-Auswahl per Loop-Type:**
+
+| `loop_type` aus Pre-Flight | Brief-File |
+|---------------------------|------------|
+| `code` (Default) | `references/subagent-briefs/code-implementer.md` |
+| `research` | `references/subagent-briefs/research-implementer.md` |
+
+Skill laedt das passende Brief-File, ersetzt Placeholder (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`) aus AGENTS.md-Cache + State-Tracker, dispatched es als Subagent-Briefing.
+
+**Default-`secret_scan_pattern`** (wenn nicht via Issue-Override gesetzt):
+```
+(ghp_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{40,}|TELEGRAM_BOT_TOKEN=[0-9]+:[A-Za-z0-9_-]+|API_KEY=[a-zA-Z0-9]{20,})
+```
 
 **Parent-Entscheidung:** Spec-Luecke zu gross → ESCALATE. Sonst Stage 3 (oder Skip-Regel).
 
-### Stage 3 — Tester
+### Stage 3 — Tester (Type-spezifische Pruef-Kriterien seit v3.2.0)
 
-**Briefing (Template):**
+**Briefing-Schema (`loop_type: code`):**
 > Du verifizierst die AC aus Issue #N. Du baust keinen Code.
 >
 > Standards: `smoke_test: <smoke_test>` aus AGENTS.md.
@@ -241,7 +273,27 @@ Wichtig: **alle Standards-Werte in den Briefings sind Placeholder** (`<branch_pa
 >
 > Parent-Output: max 200 Woerter.
 
-**Skip-Regel:** Diff nur in `docs/**` ODER `**.md` ODER `// comment`-only → Tester skippen, direkt zu Critic. Markiere `skip_tester_round_N: docs_only` im State.
+**Briefing-Schema (`loop_type: research`):**
+> Du verifizierst die Findings-Doc-Quality aus Issue #N. Du fuehrst **kein** `smoke_test` aus.
+>
+> 1. `git checkout <branch>` und Doc finden (`docs/research/<topic>-<date>.md`).
+> 2. **Doc-Quality-Check** gegen Issue-AC und Type-Pruef-Liste in
+>    `references/subagent-briefs/research-implementer.md` Sektion
+>    "Tester-Pruef-Kriterien":
+>    - [ ] Wortzahl >= 800 (`wc -w`)
+>    - [ ] Test-Matrix-Tabelle vorhanden
+>    - [ ] >= 6 Probes dokumentiert
+>    - [ ] Working-Setup-Sektion ODER Hypothese-Roadmap-Sektion
+>    - [ ] Folge-Implementation-Issue-Spec als Anhang
+>    - [ ] Quellen-Liste mit >= 1 Link
+>    - [ ] Keine Secrets im Doc (Pattern-Scan)
+> 3. Issue-Kommentar `## [stage:tester] <PASS|FAIL>` mit pro-Pruef-Item-Status + Doc-Quote als Beweis.
+>
+> Parent-Output: max 200 Woerter.
+
+**Skip-Regeln:**
+- **`code`-Loop:** Diff nur in `docs/**` ODER `**.md` ODER `// comment`-only → Tester skippen, direkt zu Critic. Markiere `skip_tester_round_N: docs_only` im State.
+- **`research`-Loop:** Skip-Regel **deaktiviert** — Doc-Quality-Check ist Pflicht (sonst nicht testbar).
 
 **Parent-Entscheidung:** FAIL → Stage 4 (Critic entscheidet Revise oder Escalate). PASS → Stage 4.
 
@@ -274,19 +326,24 @@ Wichtig: **alle Standards-Werte in den Briefings sind Placeholder** (`<branch_pa
 - REVISE → `iterations++`, Stage 2 erneut mit Critic-Comment als Briefing. **Hard-Cap: 3 Revise.**
 - ESCALATE → Pause, Telegram-Text an User.
 
-### Stage 5 — Closer
+### Stage 5 — Closer (Type-Routing seit v3.2.0)
 
 **Briefing (Template):**
 > 1. PR erstellen mit Body (Summary, verwendete Standards aus AGENTS.md, Test-Plan, "Closes #N", Loop-Engineering-Process-Block). Base: `<pr_base>`.
+>    - **`code`-Loop:** PR-Title `<commit_format>`-kompatibel (z.B. `feat(scope): ...`).
+>    - **`research`-Loop:** PR-Title `research(<topic>): findings + folge-issue-spec`.
 > 2. Squash-Merge auf `<pr_base>` (`--delete-branch`).
 > 3. Drift-Check vor Stack-Rebuild: `diff -r <live_path> <repo_path>` → bei Drift Warnung, kein Auto-Rebuild.
-> 4. Lokal pullen + Live-Stack rebuild mit `<deploy_command>` (aus AGENTS.md oder Registry).
-> 5. Health-Check post-deploy.
-> 6. MemPalace-Drawer in `palace-dominik/wing_code/room_changes` (Repo + PR + Commit + Loop-Summary + Tester-Findings die persistiert werden sollen).
-> 7. Issue-Kommentar `## [stage:closer] merged & deployed` mit PR-Nummer + Wallclock + Drawer-ID.
-> 8. Loop-State final (`status: "closed"`, `closed_at: ...`).
+> 4. **Type-spezifischer Deploy-Schritt:**
+>    - **`code`-Loop:** Lokal pullen + Live-Stack rebuild mit `<deploy_command>` (aus AGENTS.md oder Registry). Health-Check post-deploy.
+>    - **`research`-Loop:** Kein Deploy (Doc-only). Optional Folge-Implementation-Issue via `/create-issue --type=code` mit dem Spec-Stub aus dem Doc anlegen.
+> 5. **MemPalace-Drawer (Type-Routing):**
+>    - **`code`-Loop:** `palace-dominik/wing_code/room_changes` (Repo + PR + Commit + Loop-Summary + Tester-Findings).
+>    - **`research`-Loop:** `palace-dominik/wing_personal/room_arbeitsweise_mit_claude` (Loop-Pattern-Erkenntnisse + Doc-Pfad + Folge-Issue-Spec).
+> 6. Issue-Kommentar `## [stage:closer] merged & deployed` (oder `merged` fuer Research) mit PR-Nummer + Wallclock + Drawer-ID.
+> 7. Loop-State final (`status: "closed"`, `closed_at: ...`).
 >
-> Parent-Output: max 250 Woerter mit PR-Nummer, Merge-Commit, Deploy-Status, Drawer-ID, Wallclock.
+> Parent-Output: max 250 Woerter mit PR-Nummer, Merge-Commit, Deploy-Status (oder n/a fuer Research), Drawer-ID, Wallclock.
 
 **Constraint:** Bei Stack-Crash post-deploy: KEIN automatischer Revert. Melde Parent, Parent entscheidet mit User.
 
@@ -347,5 +404,8 @@ Aus Drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_cl
 - `skills/init-agents/SKILL.md` — Bootstrap-Pflicht VOR dem ersten Lauf in einem Repo
 - `skills/create-issue/SKILL.md` — Issue-Genesis-Phase
 - `skills/work-issue/references/repo-registry.yaml.example`
+- `skills/work-issue/references/subagent-briefs/code-implementer.md` — Code-Loop-Brief
+- `skills/work-issue/references/subagent-briefs/research-implementer.md` — Research-Loop-Brief
 - `skills/init-agents/references/AGENTS.md.template`
-- MemPalace-Drawer `b0a7a369` — Loop-Engineering-Pattern
+- MemPalace-Drawer `b0a7a369` — Loop-Engineering-Pattern (Original)
+- Research-Loop-Erprobung — `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
