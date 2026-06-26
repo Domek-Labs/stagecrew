@@ -1,0 +1,71 @@
+# Repo-Registry fuer /work-issue und /create-issue.
+# Live-Datei: ~/.claude/work-issue-paths.yaml (auto-ergaenzt beim ersten Lauf).
+# Konsolidiert die alten code/projects.yaml + work-issue/repo-paths.yaml.
+#
+# Felder pro Repo:
+#   repo_path:       lokaler Checkout-Pfad (Pflicht)
+#   live_path:       deployed-Pfad fuer Drift-Check (optional, sonst = repo_path)
+#   default_branch:  main | dev (auto-detect bei Pre-Flight)
+#   pr_base:         main | dev (default = default_branch)
+#   has_dev_branch:  bool (auto-detect)
+#   syntax_check:    command (Default-Heuristik wenn fehlt)
+#   smoke_test:      command (sonst aus Issue-Test-Plan abgeleitet)
+#   deploy_command:  command (optional, Closer skipt sonst Live-Rebuild)
+#   agents_md_exists: bool (auto-detect bei pre-flight)
+
+dscheinecker-at7media/personal-ai-bot:
+  repo_path: /home/dominik/mei-bot
+  live_path: /home/dominik/mei-bot               # deployed in-place
+  default_branch: main
+  pr_base: main
+  has_dev_branch: false
+  syntax_check: "node --check"
+  smoke_test: "sudo docker compose logs --tail 30 mei"
+  deploy_command: "sudo docker compose build mei && sudo docker compose up -d --force-recreate mei"
+  agents_md_exists: false
+
+dscheinecker-at7media/dominik:
+  repo_path: /home/dominik/repos/dominik
+  live_path: /home/dominik/repos/dominik
+  default_branch: main
+  pr_base: main
+  has_dev_branch: false
+  syntax_check: "true"                           # markdown-only Plugin
+  smoke_test: "true"                             # Skill-Dokus
+  deploy_command: ""                             # kein Live-Deploy noetig
+  agents_md_exists: false
+
+# --- Beispiele fuer AT7-Media-Administration mit dev-Flow (auskommentiert) ---
+
+# AT7-Media-Administration/at7-jarvis:
+#   repo_path: /root/at7-jarvis
+#   live_path: /root/at7-jarvis
+#   default_branch: dev
+#   pr_base: dev                                 # Feature-PRs → dev, dev→main separat
+#   has_dev_branch: true
+#   syntax_check: "tsc --noEmit"
+#   smoke_test: "pnpm test"
+#   deploy_command: "pnpm build && pm2 restart jarvis"
+#   agents_md_exists: false
+
+# AT7-Media-Administration/at7-edge-functions:
+#   repo_path: /root/at7-edge-functions
+#   live_path: /root/at7-edge-functions
+#   default_branch: dev
+#   pr_base: dev
+#   has_dev_branch: true
+#   syntax_check: "deno check"
+#   smoke_test: "deno test"
+#   deploy_command: "supabase functions deploy"
+#   agents_md_exists: false
+
+# AT7-Media-Administration/jarvis-channel-plugin:
+#   repo_path: /home/dominik/jarvis-channel-plugin
+#   live_path: /home/dominik/jarvis-channel-plugin
+#   default_branch: main
+#   pr_base: main
+#   has_dev_branch: false
+#   syntax_check: "node --check"
+#   smoke_test: "node test/smoke.js"
+#   deploy_command: ""
+#   agents_md_exists: false

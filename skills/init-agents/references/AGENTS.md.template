@@ -1,0 +1,56 @@
+---
+# AGENTS.md — Per-Repo-Standards fuer /create-issue und /work-issue.
+# Diese Datei ueberschreibt die Skill-Defaults (L1) und kann pro Issue
+# noch durch einen "## Standards-Override"-Block (L3) ueberschrieben werden.
+#
+# Lege sie im Repo-Root ab und commite sie auf den Default-Branch.
+
+work-issue:
+  branch_pattern: "feature/<scope>-<short>"      # default
+  default_branch: main                           # main | dev
+  pr_base: main                                  # main | dev
+  commit_format: "conventional"                  # type(scope): description
+  syntax_check: "node --check"                   # node | python -m py_compile | tsc --noEmit | ...
+  smoke_test: "docker compose build && docker compose up -d --force-recreate"
+  deploy_command: ""                             # optional, sonst skip
+  linter: ""                                     # optional
+
+  hard_gates:
+    - "Kein direkter Edit auf main"
+    - "Alle MCP-Tools brauchen ein Test-Beispiel im Doc-Block"
+    - "Keine neuen Secrets im Repo"
+
+  default_oos:
+    - "Multi-User-Support"
+    - "Web-Channel-Approvals"
+
+  ac_templates:
+    - "Code passes `node --check` (oder Repo-Aequivalent)"
+    - "Documentation in README/CLAUDE.md aktualisiert"
+    - "No new secrets in repo (Secret-Check passed)"
+---
+
+# Agent Instructions for <repo-name>
+
+Narrativ-Kontext fuer Subagents — Architektur-Hinweise, Convention-Erklaerungen,
+"warum so". Wird vor jedem Stage-Briefing als zusaetzlicher Kontext geladen.
+
+## Architektur (kurz)
+
+<Stack, Hauptkomponenten, Datenfluss>
+
+## Code-Style
+
+<Naming-Conventions, Format-Tools, Imports-Order>
+
+## Test-Conventions
+
+<wo Tests liegen, welche Frameworks, wie geschrieben>
+
+## Deployment
+
+<wie das Repo deployed wird, welche VPS, welcher Service>
+
+## Bekannte Stolpersteine
+
+<recurring footguns, edge-cases die Subagents kennen sollten>
