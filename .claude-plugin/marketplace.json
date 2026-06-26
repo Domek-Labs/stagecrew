@@ -1,0 +1,14 @@
+{
+  "name": "loop-engineering-workflow",
+  "owner": {
+    "name": "Dominik Scheinecker"
+  },
+  "plugins": [
+    {
+      "name": "loop-engineering-workflow",
+      "source": ".",
+      "description": "Loop-engineering workflow primitives — turn a GitHub issue into a merged PR (or research findings) with a 5-stage agent pipeline. Pure-reader: standards live in your repo's AGENTS.md, not in this plugin.",
+      "default": true
+    }
+  ]
+}
