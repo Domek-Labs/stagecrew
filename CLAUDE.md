@@ -55,11 +55,12 @@ Erprobt in:
 ## Roadmap
 
 - **v4.1.0 — Multi-Type-Loops (Code + Research)** — Issue #2 in diesem Repo. **DONE** (mit diesem PR).
-- **v4.2.0 — Public Flip** (Issue #3): LICENSE, secret sweep, public-ready repo rename, plus Text/Decision/Diagnostic-Type-Roadmap als Folge-Issues.
+- **v4.1.1 — Public-Flip-Prerequisites** (Issue #3): LICENSE, secret sweep, README final, plugin.json prep-bump. **DONE** (mit diesem PR).
+- **v4.2.0 — Public Visibility-Flip** (separate Session, hoher Blast-Radius).
 
 ## License
 
-MIT (LICENSE file lands with Issue #3 / v4.2.0).
+MIT, siehe [LICENSE](LICENSE).
 
 ## Status
 

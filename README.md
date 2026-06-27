@@ -19,4 +19,4 @@ See `CLAUDE.md` for the Quickstart.
 
 ## License
 
-MIT (LICENSE file lands with parent epic — see [#17](https://github.com/dscheinecker-at7media/dominik/issues/17), current sub [#21](https://github.com/dscheinecker-at7media/dominik/issues/21)).
+MIT, siehe [LICENSE](LICENSE).
