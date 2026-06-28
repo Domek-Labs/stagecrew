@@ -30,6 +30,15 @@ After install, restart Claude so the plugin cache picks up the new skills.
 
 See `CLAUDE.md` for the quickstart.
 
+## Loop types
+
+The plugin supports two issue types via the `loop-type:<type>` label:
+
+- **`loop-type:code`** — software-implementation loops (default). Template: `skills/create-issue/references/issue-templates/code.md`.
+- **`loop-type:research`** — research / findings loops (knowledge generation, test-matrix studies, library comparisons). Template: `skills/create-issue/references/issue-templates/research.md`.
+
+Use `/create-issue --type=<code|research> "<idea>"` to pick one explicitly, or let auto-inference handle it.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

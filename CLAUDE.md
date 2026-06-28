@@ -48,9 +48,9 @@ matching subagent brief. The Tester/Critic/Closer stages stay structurally ident
 but check type-specific criteria (build GREEN vs. doc quality, code-diff quality vs.
 "follow-up issue spec ready to start").
 
-Battle-tested in:
-- Code loops: 13 PRs in `dscheinecker-at7media/personal-ai-bot` (2026-06-26)
-- Research loop: `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
+Battle-tested in this repo: code loops (#6 docs/translation, #7 chore/audit).
+Research loops: infrastructure activated in #10, first end-to-end battle-test
+ready as a follow-up issue (pick a research topic and call `/work-issue --type=research`).
 
 ## Roadmap
 
