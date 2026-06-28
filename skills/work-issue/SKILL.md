@@ -1,51 +1,51 @@
 ---
 name: work-issue
-description: "GitHub Issue durch 5-Stage Spec→Build-Loop ziehen (Validator → Implementer → Tester → Critic → Closer). Multi-Repo. Pure-Reader v3.1.0 — alle Standards-Werte kommen aus AGENTS.md im Repo-Root (keine Skill-Defaults). v3.2.0 Multi-Type-System: liest loop-type:<type>-Label und dispatched zu type-spezifischem Subagent-Brief (code|research). Pflicht-Pre-Flight checkt AGENTS.md-Existenz, YAML-Parseability und Vollstaendigkeit. Codebase-memory Pflicht-Pre-Flight. Auto-PR + Merge bei APPROVE. Trigger: /work-issue, work issue, loop engineering, issue durchziehen, spec build loop."
+description: "Drive a GitHub issue through a 5-stage spec→build loop (Validator → Implementer → Tester → Critic → Closer). Multi-repo. Pure-reader v3.1.0 — all standards values come from AGENTS.md at the repo root (no skill defaults). v3.2.0 multi-type system: reads the loop-type:<type> label and dispatches to a type-specific subagent brief (code|research). Mandatory pre-flight checks AGENTS.md existence, YAML parseability and completeness. Codebase-memory mandatory pre-flight. Auto-PR + merge on APPROVE. Triggers: /work-issue, work issue, loop engineering, drive issue, spec build loop."
 ---
 
-# /work-issue — Spec→Build-Loop fuer GitHub-Issues
+# /work-issue — Spec→build loop for GitHub issues
 
-**Typ:** Loop-Engineering / Autonome Issue-Implementation
-**Version:** v3.2.0 (Multi-Type-System: Code + Research)
+**Type:** loop engineering / autonomous issue implementation
+**Version:** v3.2.0 (multi-type system: code + research)
 
-## Zweck
+## Purpose
 
-Ein vollstaendig spezifiziertes GitHub-Issue (Idee + Spec + AC + Files-To-Touch + Test-Plan + OoS) durch 5 dedizierte Subagents bis Merge ziehen. Jede Stage = ein Agent, postet `[stage:<name>]`-Kommentar am Issue als Audit-Log, dann startet die naechste Stage.
+Drive a fully-specified GitHub issue (Idea + Spec + AC + Files-To-Touch + Test-Plan + OoS) to merge through 5 dedicated subagents. Each stage = one agent that posts a `[stage:<name>]` comment on the issue as an audit log, then the next stage starts.
 
-Seit **v3.1.0** ist dieser Skill ein **Pure-Reader**: keine Hardcoded-Defaults mehr. Alle Standards-Werte (branch_pattern, syntax_check, smoke_test, ...) kommen aus **AGENTS.md im Repo-Root**. Fehlt AGENTS.md → STOP mit Pointer auf `/init-agents`.
+Since **v3.1.0** this skill is a **pure-reader**: no more hardcoded defaults. All standards values (branch_pattern, syntax_check, smoke_test, ...) come from **AGENTS.md at the repo root**. Missing AGENTS.md → STOP with a pointer to `/init-agents`.
 
-Pattern aus Loop-Engineering-Drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_claude / 2026-06-21). Erst-Erprobung 2026-06-25 mit `dscheinecker-at7media/personal-ai-bot#5` (33 min, 2 Iterationen, alle 5 AC gruen).
+Pattern from the loop-engineering drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_claude / 2026-06-21). First test 2026-06-25 with `dscheinecker-at7media/personal-ai-bot#5` (33 min, 2 iterations, all 5 ACs green).
 
-## Aufruf-Varianten
+## Invocation variants
 
 ```
 /work-issue 5 --repo dscheinecker-at7media/personal-ai-bot
 /work-issue dscheinecker-at7media/personal-ai-bot#5
-/work-issue 5                                # → fallback: cwd-git-repo
-/work-issue                                  # → listet offene Issues, fragt nach Auswahl
+/work-issue 5                                # → fallback: cwd git repo
+/work-issue                                  # → lists open issues, asks for selection
 ```
 
-**Argument-Parsing:**
-1. `<owner>/<repo>#<num>` matched → splitte in `repo` + `issue_num`
-2. `--repo <slug>` Flag + freie Zahl
-3. `git -C $(pwd) remote get-url origin` → cwd-Fallback
-4. Keine Zahl → `gh issue list --repo <slug> --state open --limit 30`, User waehlt
-5. Wenn keine Issue-Nummer aufloesbar → fragen, ob `/create-issue` aufgerufen werden soll
+**Argument parsing:**
+1. `<owner>/<repo>#<num>` matched → split into `repo` + `issue_num`
+2. `--repo <slug>` flag + bare number
+3. `git -C $(pwd) remote get-url origin` → cwd fallback
+4. No number → `gh issue list --repo <slug> --state open --limit 30`, user picks
+5. Issue number cannot be resolved → ask whether `/create-issue` should be called
 
-## Standards-Quelle (2-Tier seit v3.1.0)
+## Standards source (2-tier since v3.1.0)
 
-| Tier | Quelle | Was es ueberschreibt |
-|------|--------|----------------------|
-| L1   | `AGENTS.md` im Repo-Root (YAML-Frontmatter) | Basis-Werte — Repo-spezifische Conventions |
-| L2   | `## Standards-Override`-Block im Issue-Body | L1 — Issue-spezifischer One-Shot |
+| Tier | Source | What it overrides |
+|------|--------|-------------------|
+| L1   | `AGENTS.md` at the repo root (YAML frontmatter) | base values — repo-specific conventions |
+| L2   | `## Standards Override` block in the issue body | L1 — issue-specific one-shot |
 
-Lade L1 → L2, merge nach rechts. **L1 ist Pflicht** (siehe Pre-Flight-Check unten). Frueheres Skill-Default-L1 ist entfallen (v3.1.0), `/init-agents` legt AGENTS.md an.
+Load L1 → L2, merge right-wins. **L1 is mandatory** (see the pre-flight check below). The earlier skill-default L1 has been removed (v3.1.0); `/init-agents` creates AGENTS.md.
 
-**Producer-Side seit v3.2.0** (`/create-issue`): injiziert AGENTS.md `ac_templates` automatisch in den AC-Block und detected Issue-Types (docs/epic/secret/mcp/live-ping/live-service) mit Pflicht-Erweiterungen. Validator bleibt strict — Producer ist jetzt opinionated. Details siehe `skills/create-issue/SKILL.md`.
+**Producer side since v3.2.0** (`/create-issue`): auto-injects AGENTS.md `ac_templates` into the AC block and detects issue types (docs/epic/secret/mcp/live-ping/live-service) with required extensions. The Validator stays strict — the producer is now opinionated. See `skills/create-issue/SKILL.md`.
 
-## AGENTS.md-Format (L1)
+## AGENTS.md format (L1)
 
-YAML-Frontmatter + Markdown-Body. Frontmatter wird vom Skill geparst, Body wird im Subagent-Briefing als Kontext geladen.
+YAML frontmatter + Markdown body. The frontmatter is parsed by the skill; the body is loaded as context in the subagent briefing.
 
 ```yaml
 ---
@@ -54,134 +54,134 @@ work-issue:
   default_branch: main | dev
   pr_base: main | dev
   commit_format: "conventional" | "custom"
-  syntax_check: "<command>"           # z.B. "node --check <file>"
-  smoke_test: "<command>"             # z.B. "docker compose build && smoke"
+  syntax_check: "<command>"           # e.g., "node --check <file>"
+  smoke_test: "<command>"             # e.g., "docker compose build && smoke"
   deploy_command: "<command>"
   linter: "<command>"
   hard_gates:
-    - "Beschreibung der Regel"
+    - "rule description"
   default_oos:
     - "..."
   ac_templates:
-    - "Tests gruen"
-    - "Docs aktualisiert"
+    - "tests green"
+    - "docs updated"
 ---
 
 # Agent Instructions for <repo>
-... narrative Kontext (Architektur, Conventions, "warum so") ...
+... narrative context (architecture, conventions, "why so") ...
 ```
 
-Template: `../init-agents/references/AGENTS.md.template`. Wenn ein Repo noch keine AGENTS.md hat, ruf `/init-agents --repo <slug>` auf.
+Template: `../init-agents/references/AGENTS.md.template`. If a repo does not yet have an AGENTS.md, call `/init-agents --repo <slug>`.
 
-## Codebase-Memory-Pflicht (Pre-Flight)
+## Codebase-memory requirement (pre-flight)
 
-Der Skill ruft IMMER vor Stage 1 das codebase-memory-MCP, um den Subagents korrekten Kontext zu geben:
+The skill ALWAYS calls the codebase-memory MCP before stage 1 to give the subagents proper context:
 
-1. **`list_projects`** — pruefe ob `<repo>` indexed.
-2. **Wenn nicht indexed:** `index_repository` mit Mode `moderate` (Default-Heuristik).
-3. **Wenn indexed:** `index_status` fuer Freshness-Check.
-   - Schwellwert: 7 Tage seit letztem Index UND letzter Commit > Index-Datum → auto re-index.
-4. **Health-Check:** wenn `nodes < 200` ODER `source_files < 3` → Warnung an User:
-   > Default-Heuristik exkludiert evtl. wichtige Dirs (bin/, docs/, scripts/). Re-Index mit expliziten Pfaden empfohlen, bevor Loop laeuft.
+1. **`list_projects`** — check whether `<repo>` is indexed.
+2. **If not indexed:** `index_repository` with mode `moderate` (default heuristic).
+3. **If indexed:** `index_status` for a freshness check.
+   - Threshold: 7 days since last index AND latest commit > index date → auto re-index.
+4. **Health check:** if `nodes < 200` OR `source_files < 3` → warn the user:
+   > The default heuristic may have excluded important dirs (bin/, docs/, scripts/). Re-index with explicit paths is recommended before the loop runs.
 
-### Wo welches Tool im Loop genutzt wird
+### Where each tool is used in the loop
 
-- **Validator (Stage 1):** `get_architecture` — Issue-genannte Files gegen Graph pruefen (existieren? im Cluster?).
-- **Implementer (Stage 2):** `search_code` fuer Sibling-Funktionen + Conventions im Repo.
-- **Critic (Stage 4):** `search_code` pro AC-Box als Code-Evidence ("AC sagt X, Code zeigt Y").
+- **Validator (stage 1):** `get_architecture` — check the files named in the issue against the graph (do they exist? are they in the cluster?).
+- **Implementer (stage 2):** `search_code` for sibling functions + conventions in the repo.
+- **Critic (stage 4):** `search_code` per AC checkbox for code evidence ("AC says X, code shows Y").
 
-## Repo-Registry
+## Repo registry
 
-Live-Datei: `~/.claude/work-issue-paths.yaml` (persistiert ueber Plugin-Updates).
-Template: `references/repo-registry.yaml.example` (mit Plugin ausgeliefert).
+Live file: `~/.claude/work-issue-paths.yaml` (persists across plugin updates).
+Template: `references/repo-registry.yaml.example` (shipped with the plugin).
 
-Felder pro Repo:
+Fields per repo:
 
 ```yaml
 <owner>/<repo>:
   repo_path: /abs/path/to/checkout
-  live_path: /abs/path/to/deployed         # optional, fuer Drift-Check
+  live_path: /abs/path/to/deployed         # optional, for drift check
   default_branch: main | dev
   pr_base: main | dev
-  has_dev_branch: true | false             # auto-detect bei pre-flight
+  has_dev_branch: true | false             # auto-detected at pre-flight
   syntax_check: "<command>"
   smoke_test: "<command>"
   deploy_command: "<command>"
-  agents_md_exists: true | false           # gesetzt von /init-agents
+  agents_md_exists: true | false           # set by /init-agents
 ```
 
-Beim ersten Lauf fuer einen neuen Repo: einmal nach `repo_path` + `deploy_command` fragen, in Live-Datei persistieren. Wenn Live-Datei fehlt: `cp` aus Template als Bootstrap.
+On the first run for a new repo: ask once for `repo_path` + `deploy_command`, persist to the live file. If the live file is missing: `cp` from the template as a bootstrap.
 
-## Pre-Flight Stage 0 (NEU vor Validator)
+## Pre-Flight stage 0 (NEW, before Validator)
 
-In dieser Reihenfolge ausfuehren:
+Run in this order:
 
-1. **Repo-Registry-Lookup** → `repo_path` aus `~/.claude/work-issue-paths.yaml`. Wenn fehlt: einmal nach Pfad fragen.
-2. **Codebase-Memory-Pre-Flight** (siehe oben: list_projects → index/freshness → health-check).
-3. **AGENTS.md-Pflicht-Check (NEU v3.1.0)** — siehe naechste Sektion.
-4. **Loop-Type-Resolution (NEU v3.2.0)** — siehe naechste Sektion.
-5. **Default-Branch ermitteln:** `gh api repos/<slug> --jq .default_branch` (Cross-Check gegen AGENTS.md-Wert).
-6. **`dev`-Branch-Existenz pruefen:** `gh api repos/<slug>/branches/dev` → 200 oder 404 (Info-only).
-7. **Live-Path-Drift-Check** (wenn `live_path != repo_path`): `diff -r <live_path> <repo_path>` → bei Drift Warnung an User vor Stage 1.
-8. **Channel-Inbound-Detection:** wenn `<channel>`-Tag → kurzer Reply "Loop fuer <slug>#<n> startet (`loop-type:<type>`), Stage 1 laeuft."
+1. **Repo-registry lookup** → `repo_path` from `~/.claude/work-issue-paths.yaml`. If missing: ask once for the path.
+2. **Codebase-memory pre-flight** (see above: list_projects → index/freshness → health check).
+3. **AGENTS.md mandatory check (NEW in v3.1.0)** — see the next section.
+4. **Loop-type resolution (NEW in v3.2.0)** — see the next section.
+5. **Determine default branch:** `gh api repos/<slug> --jq .default_branch` (cross-check against the AGENTS.md value).
+6. **Check for `dev` branch existence:** `gh api repos/<slug>/branches/dev` → 200 or 404 (info only).
+7. **Live-path drift check** (if `live_path != repo_path`): `diff -r <live_path> <repo_path>` → on drift, warn the user before stage 1.
+8. **Channel inbound detection:** on a `<channel>` tag → short reply "Loop for <slug>#<n> starting (`loop-type:<type>`), stage 1 running."
 
-### AGENTS.md-Pflicht-Check (NEU v3.1.0)
+### AGENTS.md mandatory check (NEW in v3.1.0)
 
-Vor Stage 1 in dieser Reihenfolge pruefen — jeder Fehler ist ein **STOP-Verdict** (kein Stage 1, kein Subagent-Start).
+Before stage 1, check in this order — every failure is a **STOP verdict** (no stage 1, no subagent start).
 
-1. **Existenz**: `ls <repo_path>/AGENTS.md`
-   - Fehlt → STOP:
-     > AGENTS.md im Repo-Root fehlt (`<repo_path>/AGENTS.md`). Bitte zuerst `/init-agents --repo <slug>` aufrufen, um die Standards-Spec anzulegen. Danach `/work-issue <num> --repo <slug>` erneut starten.
+1. **Existence**: `ls <repo_path>/AGENTS.md`
+   - Missing → STOP:
+     > AGENTS.md is missing at the repo root (`<repo_path>/AGENTS.md`). Please run `/init-agents --repo <slug>` first to create the standards spec. Then re-run `/work-issue <num> --repo <slug>`.
 
-2. **YAML-Parseability**:
+2. **YAML parseability**:
    ```bash
    python3 -c "import yaml; yaml.safe_load(open('<repo_path>/AGENTS.md').read().split('---')[1])"
    ```
-   - Fehler → STOP:
-     > AGENTS.md hat Syntax-Fehler im YAML-Frontmatter: `<error-message>` (Zeile `<line>`). Bitte korrigieren oder `/init-agents --refine --repo <slug>` aufrufen, um Felder neu zu setzen.
+   - Error → STOP:
+     > AGENTS.md has a syntax error in the YAML frontmatter: `<error-message>` (line `<line>`). Please fix or call `/init-agents --refine --repo <slug>` to reset fields.
 
-3. **Vollstaendigkeit**: alle 11 Felder im `work-issue:`-Namespace sind gesetzt (`branch_pattern`, `default_branch`, `pr_base`, `commit_format`, `syntax_check`, `smoke_test`, `deploy_command`, `linter`, `hard_gates`, `default_oos`, `ac_templates`).
-   - Fehlende Felder → STOP:
-     > AGENTS.md unvollstaendig. Fehlende Felder: `<liste>`. Bitte `/init-agents --refine --repo <slug>` aufrufen, um die Felder zu ergaenzen.
+3. **Completeness**: all 11 fields in the `work-issue:` namespace are set (`branch_pattern`, `default_branch`, `pr_base`, `commit_format`, `syntax_check`, `smoke_test`, `deploy_command`, `linter`, `hard_gates`, `default_oos`, `ac_templates`).
+   - Missing fields → STOP:
+     > AGENTS.md is incomplete. Missing fields: `<list>`. Please call `/init-agents --refine --repo <slug>` to add them.
 
-   Hinweis: leere Listen (`[]`) und leere Strings (`""`) gelten als gesetzt — `deploy_command: ""` ist erlaubt, `deploy_command` fehlend ist STOP.
+   Note: empty lists (`[]`) and empty strings (`""`) count as set — `deploy_command: ""` is allowed, `deploy_command` missing is STOP.
 
-Bei allen drei Checks OK: Frontmatter cachen und Body fuer Stage-Briefings vorhalten. Dieser Cache wird als Quelle fuer alle Standards-Werte in den Subagent-Briefings genutzt.
+If all three checks pass: cache the frontmatter and keep the body available for stage briefings. This cache is the source for all standards values in the subagent briefings.
 
-### Loop-Type-Resolution (NEU v3.2.0)
+### Loop-type resolution (NEW in v3.2.0)
 
-Vor Stage 1 den Issue-Loop-Type ermitteln. In dieser Reihenfolge:
+Before stage 1, determine the issue loop type. In this order:
 
-1. **Issue-Label** — `gh issue view <num> --repo <slug> --json labels --jq '.labels[].name'` → suche `loop-type:<type>` Prefix.
-2. **Body-Frontmatter-Fallback** — Wenn Issue-Body mit `---\nloop-type: <type>\n---` startet → diesen Wert nutzen. (Kommt vor wenn Issue manuell ohne Skill angelegt wurde.)
-3. **AGENTS.md-Default-Fallback** — `loop_types.default` aus AGENTS.md (typisch `code`).
-4. **Letzter Fallback** — `code` (Backwards-Compat fuer Pre-v3.2.0-Issues).
+1. **Issue label** — `gh issue view <num> --repo <slug> --json labels --jq '.labels[].name'` → look for the `loop-type:<type>` prefix.
+2. **Body frontmatter fallback** — if the issue body starts with `---\nloop-type: <type>\n---` → use that value. (Happens when an issue was filed manually without the skill.)
+3. **AGENTS.md default fallback** — `loop_types.default` from AGENTS.md (typically `code`).
+4. **Last-resort fallback** — `code` (backwards compatibility for pre-v3.2.0 issues).
 
-Validierung gegen `loop_types.enabled` aus AGENTS.md:
-- Wenn resolved-Type **nicht** in `enabled`: STOP-Verdict:
-  > Issue hat `loop-type:<X>`, aber AGENTS.md `loop_types.enabled` enthaelt nur `<liste>`. Bitte AGENTS.md erweitern (`/init-agents --refine`) oder Issue-Label korrigieren.
+Validation against `loop_types.enabled` from AGENTS.md:
+- If the resolved type is **not** in `enabled`: STOP verdict:
+  > Issue has `loop-type:<X>`, but AGENTS.md `loop_types.enabled` only contains `<list>`. Please extend AGENTS.md (`/init-agents --refine`) or fix the issue label.
 
-- Wenn resolved-Type ist `text`/`decision`/`diagnostic` (Roadmap-Types): STOP-Verdict mit Roadmap-Hint:
-  > Loop-Type `<type>` ist Roadmap, noch nicht implementiert. Aktuell unterstuetzt: code, research. Verfolge Roadmap in den Repo-Issues mit Label `loop-type` + `roadmap`.
+- If the resolved type is `text`/`decision`/`diagnostic` (roadmap types): STOP verdict with roadmap hint:
+  > Loop type `<type>` is on the roadmap, not yet implemented. Currently supported: code, research. Track the roadmap in the repo issues with labels `loop-type` + `roadmap`.
 
-Bei OK: Resolved-Type in State-Tracker schreiben (`loop_type` Feld). Subagent-Brief-Loader benutzt diesen Wert.
+On OK: write the resolved type into the state tracker (`loop_type` field). The subagent-brief loader uses this value.
 
-### Subagent-Brief-Loader (NEU v3.2.0)
+### Subagent-brief loader (NEW in v3.2.0)
 
-Pro Stage 2 (Implementer) wird der Brief aus `references/subagent-briefs/<loop_type>-implementer.md` geladen. Briefe haben Placeholder (`{{branch_pattern}}`, `{{syntax_check}}`, etc.) die zur Render-Zeit aus dem AGENTS.md-Cache + State-Tracker ersetzt werden.
+For each stage 2 (Implementer), the brief is loaded from `references/subagent-briefs/<loop_type>-implementer.md`. The briefs have placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, etc.) that are replaced at render time from the AGENTS.md cache + state tracker.
 
-| Loop-Type | Subagent-Brief-File |
+| Loop type | Subagent-brief file |
 |-----------|---------------------|
 | `code` | `references/subagent-briefs/code-implementer.md` |
 | `research` | `references/subagent-briefs/research-implementer.md` |
 
-Tester / Critic / Closer-Stages bleiben **strukturell gleich**, aber pruefen type-spezifische Kriterien:
-- `code`: Build GREEN via `smoke_test`, Code-Diff-Quality
-- `research`: Doc-Quality-Check (Wortzahl, Test-Matrix, Working-Setup oder Hypothese-Roadmap)
+Tester / Critic / Closer stages stay **structurally identical** but check type-specific criteria:
+- `code`: build GREEN via `smoke_test`, code-diff quality
+- `research`: doc-quality check (word count, test matrix, working setup or hypothesis roadmap)
 
-Die Type-spezifischen Pruef-Kriterien sind in den jeweiligen Subagent-Brief-Files dokumentiert (Sektionen "Tester-Pruef-Kriterien" und "Critic-Pruef-Kriterien").
+The type-specific check criteria are documented in the corresponding subagent-brief files (sections "Tester check criteria" and "Critic check criteria").
 
-## State-Tracker
+## State tracker
 
 `/tmp/loop-<repo_slug_safe>-<issue>.json`:
 
@@ -204,208 +204,208 @@ Die Type-spezifischen Pruef-Kriterien sind in den jeweiligen Subagent-Brief-File
 }
 ```
 
-`loop_type` ist seit v3.2.0 Pflicht — siehe Loop-Type-Resolution oben.
+`loop_type` is mandatory since v3.2.0 — see "Loop-type resolution" above.
 
-`repo_slug_safe` = `owner_repo` (Slash → Underscore). Update nach jeder Stage.
+`repo_slug_safe` = `owner_repo` (slash → underscore). Update after every stage.
 
-## Die 5 Stages
+## The 5 stages
 
-Jede Stage = ein eigener Subagent via Agent-Tool (`general-purpose`). Sequenziell, Output lesen, naechste Stage entscheiden.
+Each stage = its own subagent via the agent tool (`general-purpose`). Sequential; read output, decide on the next stage.
 
-Wichtig: **alle Standards-Werte in den Briefings sind Placeholder** (`<branch_pattern>`, `<syntax_check>`, ...). Sie werden zur Laufzeit aus dem AGENTS.md-Cache eingesetzt — keine fixen Defaults mehr im Skill.
+Important: **all standards values in the briefings are placeholders** (`<branch_pattern>`, `<syntax_check>`, ...). They are substituted at runtime from the AGENTS.md cache — no more fixed defaults in the skill.
 
-### Stage 1 — Spec-Validator
+### Stage 1 — Spec Validator
 
-**Briefing (Template):**
-> Du validierst Issue #N im Repo `<slug>`. Du baust nichts.
+**Briefing (template):**
+> You are validating issue #N in repo `<slug>`. You build nothing.
 >
-> Standards-Kontext: Repo hat AGENTS.md mit `hard_gates: <hard_gates>` und `ac_templates: <ac_templates>`. Body von AGENTS.md:
+> Standards context: the repo has an AGENTS.md with `hard_gates: <hard_gates>` and `ac_templates: <ac_templates>`. AGENTS.md body:
 > ```
 > <AGENTS-MD-BODY>
 > ```
 >
-> 1. `gh issue view N --repo <slug>` lesen.
-> 2. Validator-Gates pruefen:
->    - [ ] AC sind testbar (jede Box konkret pruefbar)
->    - [ ] AC enthaelt die `ac_templates` aus AGENTS.md
->    - [ ] Files-To-Touch existieren oder sind als neu beschrieben. Pruefe via `get_architecture` aus codebase-memory + `ls` im Repo-Pfad.
->    - [ ] Dependencies erfuellt (`depends on #X` → checke `#X` CLOSED)
->    - [ ] Test-Plan vorhanden
->    - [ ] Out-of-Scope benannt (mind. `default_oos` aus AGENTS.md plus Issue-spezifisch)
->    - [ ] `hard_gates` aus AGENTS.md adressiert
-> 3. Bei STOP: konkrete Spec-Verbesserungs-Vorschlaege.
-> 4. Output: Kommentar `## [stage:validator] <GO|STOP>` an Issue + Parent-Report (max 100 Woerter).
+> 1. Read `gh issue view N --repo <slug>`.
+> 2. Validator gates:
+>    - [ ] ACs are testable (every checkbox concretely verifiable)
+>    - [ ] ACs include the `ac_templates` from AGENTS.md
+>    - [ ] Files-to-touch exist or are described as new. Check via `get_architecture` from codebase-memory + `ls` in the repo path.
+>    - [ ] Dependencies satisfied (`depends on #X` → check `#X` is CLOSED)
+>    - [ ] Test plan present
+>    - [ ] Out-of-scope named (at minimum `default_oos` from AGENTS.md plus issue-specific)
+>    - [ ] `hard_gates` from AGENTS.md addressed
+> 3. On STOP: concrete spec-improvement suggestions.
+> 4. Output: comment `## [stage:validator] <GO|STOP>` on the issue + parent report (max 100 words).
 
-**Parent-Entscheidung:**
-- STOP → Loop pausiert, Telegram-Text an User mit Gruenden + Vorschlag `/create-issue --refine <num>`.
-- GO → Stage 2.
+**Parent decision:**
+- STOP → loop paused, Telegram text to the user with reasons + suggestion `/create-issue --refine <num>`.
+- GO → stage 2.
 
-### Stage 2 — Implementer (Type-Dispatch seit v3.2.0)
+### Stage 2 — Implementer (type dispatch since v3.2.0)
 
-**Brief-Auswahl per Loop-Type:**
+**Brief selection by loop type:**
 
-| `loop_type` aus Pre-Flight | Brief-File |
-|---------------------------|------------|
-| `code` (Default) | `references/subagent-briefs/code-implementer.md` |
+| `loop_type` from pre-flight | Brief file |
+|-----------------------------|------------|
+| `code` (default) | `references/subagent-briefs/code-implementer.md` |
 | `research` | `references/subagent-briefs/research-implementer.md` |
 
-Skill laedt das passende Brief-File, ersetzt Placeholder (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`) aus AGENTS.md-Cache + State-Tracker, dispatched es als Subagent-Briefing.
+The skill loads the matching brief file, replaces placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`) from the AGENTS.md cache + state tracker, and dispatches it as the subagent briefing.
 
-**Default-`secret_scan_pattern`** (wenn nicht via Issue-Override gesetzt):
+**Default `secret_scan_pattern`** (when not set via issue override):
 ```
 (ghp_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{40,}|TELEGRAM_BOT_TOKEN=[0-9]+:[A-Za-z0-9_-]+|API_KEY=[a-zA-Z0-9]{20,})
 ```
 
-**Parent-Entscheidung:** Spec-Luecke zu gross → ESCALATE. Sonst Stage 3 (oder Skip-Regel).
+**Parent decision:** spec gap too large → ESCALATE. Otherwise stage 3 (or skip rule).
 
-### Stage 3 — Tester (Type-spezifische Pruef-Kriterien seit v3.2.0)
+### Stage 3 — Tester (type-specific check criteria since v3.2.0)
 
-**Briefing-Schema (`loop_type: code`):**
-> Du verifizierst die AC aus Issue #N. Du baust keinen Code.
+**Briefing schema (`loop_type: code`):**
+> You verify the ACs from issue #N. You do not write code.
 >
-> Standards: `smoke_test: <smoke_test>` aus AGENTS.md.
+> Standards: `smoke_test: <smoke_test>` from AGENTS.md.
 >
 > 1. `git checkout <branch>`
-> 2. `<smoke_test>` ausfuehren.
-> 3. Pro AC-Box: Smoke-Test + Beweis (log-snippet, command-output).
-> 4. **Cleanup-Pflicht:** Live-Stack/State zuruecksetzen falls angefasst. Cleanup-Status im Comment.
-> 5. Issue-Kommentar `## [stage:tester] <PASS|FAIL>` mit pro-AC Status + Beweisen + Cleanup-Status.
+> 2. Run `<smoke_test>`.
+> 3. Per AC checkbox: smoke test + proof (log snippet, command output).
+> 4. **Cleanup requirement:** reset live stack/state if touched. Cleanup status in the comment.
+> 5. Issue comment `## [stage:tester] <PASS|FAIL>` with per-AC status + proof + cleanup status.
 >
-> Parent-Output: max 200 Woerter.
+> Parent output: max 200 words.
 
-**Briefing-Schema (`loop_type: research`):**
-> Du verifizierst die Findings-Doc-Quality aus Issue #N. Du fuehrst **kein** `smoke_test` aus.
+**Briefing schema (`loop_type: research`):**
+> You verify the findings doc quality from issue #N. You do **not** run `smoke_test`.
 >
-> 1. `git checkout <branch>` und Doc finden (`docs/research/<topic>-<date>.md`).
-> 2. **Doc-Quality-Check** gegen Issue-AC und Type-Pruef-Liste in
->    `references/subagent-briefs/research-implementer.md` Sektion
->    "Tester-Pruef-Kriterien":
->    - [ ] Wortzahl >= 800 (`wc -w`)
->    - [ ] Test-Matrix-Tabelle vorhanden
->    - [ ] >= 6 Probes dokumentiert
->    - [ ] Working-Setup-Sektion ODER Hypothese-Roadmap-Sektion
->    - [ ] Folge-Implementation-Issue-Spec als Anhang
->    - [ ] Quellen-Liste mit >= 1 Link
->    - [ ] Keine Secrets im Doc (Pattern-Scan)
-> 3. Issue-Kommentar `## [stage:tester] <PASS|FAIL>` mit pro-Pruef-Item-Status + Doc-Quote als Beweis.
+> 1. `git checkout <branch>` and find the doc (`docs/research/<topic>-<date>.md`).
+> 2. **Doc-quality check** against the issue ACs and the type-check list in
+>    `references/subagent-briefs/research-implementer.md` section
+>    "Tester check criteria":
+>    - [ ] Word count >= 800 (`wc -w`)
+>    - [ ] Test-matrix table present
+>    - [ ] >= 6 probes documented
+>    - [ ] Working-setup section OR hypothesis-roadmap section
+>    - [ ] Follow-up implementation-issue spec attached
+>    - [ ] Sources list with >= 1 link
+>    - [ ] No secrets in the doc (pattern scan)
+> 3. Issue comment `## [stage:tester] <PASS|FAIL>` with per-check-item status + doc quote as evidence.
 >
-> Parent-Output: max 200 Woerter.
+> Parent output: max 200 words.
 
-**Skip-Regeln:**
-- **`code`-Loop:** Diff nur in `docs/**` ODER `**.md` ODER `// comment`-only → Tester skippen, direkt zu Critic. Markiere `skip_tester_round_N: docs_only` im State.
-- **`research`-Loop:** Skip-Regel **deaktiviert** — Doc-Quality-Check ist Pflicht (sonst nicht testbar).
+**Skip rules:**
+- **`code` loop:** diff only in `docs/**` OR `**.md` OR `// comment`-only → skip Tester, go directly to Critic. Mark `skip_tester_round_N: docs_only` in the state.
+- **`research` loop:** skip rule **disabled** — doc-quality check is mandatory (otherwise not verifiable).
 
-**Parent-Entscheidung:** FAIL → Stage 4 (Critic entscheidet Revise oder Escalate). PASS → Stage 4.
+**Parent decision:** FAIL → stage 4 (Critic decides revise or escalate). PASS → stage 4.
 
 ### Stage 4 — Critic
 
-**Briefing (Template):**
-> Du bewertest Branch `<branch>` (HEAD `<commit>`) gegen Issue #N.
+**Briefing (template):**
+> You review branch `<branch>` (HEAD `<commit>`) against issue #N.
 >
-> Standards-Kontext: AGENTS.md-Body + `hard_gates: <hard_gates>`.
+> Standards context: AGENTS.md body + `hard_gates: <hard_gates>`.
 >
-> 1. Issue-AC + Implementer-Comment + Tester-Comment lesen.
-> 2. `git diff <default_branch>..<branch>` lesen.
-> 3. Pro AC: `search_code` aus codebase-memory fuer Code-Evidence ("AC sagt X, Code-Snippet zeigt Y") → OK/Warn/Fail.
-> 4. Tester-Findings werten: blockierend oder dokumentier-bar?
-> 5. Out-of-Scope-Check (`<default_oos>` + Issue-OoS).
-> 6. `hard_gates`-Check (siehe AGENTS.md).
-> 7. Code-Qualitaet (smoke): Naming, Error-Handling, Cleanup, Security.
+> 1. Read the issue ACs + Implementer comment + Tester comment.
+> 2. Read `git diff <default_branch>..<branch>`.
+> 3. Per AC: `search_code` via codebase-memory for code evidence ("AC says X, code snippet shows Y") → OK/Warn/Fail.
+> 4. Evaluate Tester findings: blocking or documentable?
+> 5. Out-of-scope check (`<default_oos>` + issue OoS).
+> 6. `hard_gates` check (see AGENTS.md).
+> 7. Code quality (smoke): naming, error handling, cleanup, security.
 >
 > Verdict:
-> - **APPROVE** — alle AC ok, keine blockierenden Findings, OoS + hard_gates eingehalten.
-> - **REVISE** — actionable items (konkret).
-> - **ESCALATE** — Spec-Luecke / Architektur-Frage.
+> - **APPROVE** — all ACs OK, no blocking findings, OoS + hard_gates respected.
+> - **REVISE** — actionable items (concrete).
+> - **ESCALATE** — spec gap / architectural question.
 >
-> Issue-Kommentar `## [stage:critic] <verdict>` mit AC-Review + OoS-Check + Findings-Bewertung + (bei REVISE) Actionable Items.
+> Issue comment `## [stage:critic] <verdict>` with AC review + OoS check + findings evaluation + (on REVISE) actionable items.
 >
-> Parent-Output: max 150 Woerter.
+> Parent output: max 150 words.
 
-**Parent-Entscheidung:**
-- APPROVE → Stage 5.
-- REVISE → `iterations++`, Stage 2 erneut mit Critic-Comment als Briefing. **Hard-Cap: 3 Revise.**
-- ESCALATE → Pause, Telegram-Text an User.
+**Parent decision:**
+- APPROVE → stage 5.
+- REVISE → `iterations++`, stage 2 again with the Critic comment as the briefing. **Hard cap: 3 revises.**
+- ESCALATE → pause, Telegram text to the user.
 
-### Stage 5 — Closer (Type-Routing seit v3.2.0)
+### Stage 5 — Closer (type routing since v3.2.0)
 
-**Briefing (Template):**
-> 1. PR erstellen mit Body (Summary, verwendete Standards aus AGENTS.md, Test-Plan, "Closes #N", Loop-Engineering-Process-Block). Base: `<pr_base>`.
->    - **`code`-Loop:** PR-Title `<commit_format>`-kompatibel (z.B. `feat(scope): ...`).
->    - **`research`-Loop:** PR-Title `research(<topic>): findings + folge-issue-spec`.
-> 2. Squash-Merge auf `<pr_base>` (`--delete-branch`).
-> 3. Drift-Check vor Stack-Rebuild: `diff -r <live_path> <repo_path>` → bei Drift Warnung, kein Auto-Rebuild.
-> 4. **Type-spezifischer Deploy-Schritt:**
->    - **`code`-Loop:** Lokal pullen + Live-Stack rebuild mit `<deploy_command>` (aus AGENTS.md oder Registry). Health-Check post-deploy.
->    - **`research`-Loop:** Kein Deploy (Doc-only). Optional Folge-Implementation-Issue via `/create-issue --type=code` mit dem Spec-Stub aus dem Doc anlegen.
-> 5. **MemPalace-Drawer (Type-Routing):**
->    - **`code`-Loop:** `palace-dominik/wing_code/room_changes` (Repo + PR + Commit + Loop-Summary + Tester-Findings).
->    - **`research`-Loop:** `palace-dominik/wing_personal/room_arbeitsweise_mit_claude` (Loop-Pattern-Erkenntnisse + Doc-Pfad + Folge-Issue-Spec).
-> 6. Issue-Kommentar `## [stage:closer] merged & deployed` (oder `merged` fuer Research) mit PR-Nummer + Wallclock + Drawer-ID.
-> 7. Loop-State final (`status: "closed"`, `closed_at: ...`).
+**Briefing (template):**
+> 1. Create a PR with body (summary, standards used from AGENTS.md, test plan, "Closes #N", loop-engineering process block). Base: `<pr_base>`.
+>    - **`code` loop:** PR title `<commit_format>`-compatible (e.g., `feat(scope): ...`).
+>    - **`research` loop:** PR title `research(<topic>): findings + follow-up issue spec`.
+> 2. Squash-merge to `<pr_base>` (`--delete-branch`).
+> 3. Drift check before stack rebuild: `diff -r <live_path> <repo_path>` → on drift, warn, no auto rebuild.
+> 4. **Type-specific deploy step:**
+>    - **`code` loop:** pull locally + rebuild live stack with `<deploy_command>` (from AGENTS.md or registry). Health check post-deploy.
+>    - **`research` loop:** no deploy (doc-only). Optionally file a follow-up implementation issue via `/create-issue --type=code` with the spec stub from the doc.
+> 5. **MemPalace drawer (type routing):**
+>    - **`code` loop:** `palace-dominik/wing_code/room_changes` (repo + PR + commit + loop summary + Tester findings).
+>    - **`research` loop:** `palace-dominik/wing_personal/room_arbeitsweise_mit_claude` (loop-pattern insights + doc path + follow-up issue spec).
+> 6. Issue comment `## [stage:closer] merged & deployed` (or `merged` for research) with PR number + wallclock + drawer ID.
+> 7. Loop state final (`status: "closed"`, `closed_at: ...`).
 >
-> Parent-Output: max 250 Woerter mit PR-Nummer, Merge-Commit, Deploy-Status (oder n/a fuer Research), Drawer-ID, Wallclock.
+> Parent output: max 250 words with PR number, merge commit, deploy status (or n/a for research), drawer ID, wallclock.
 
-**Constraint:** Bei Stack-Crash post-deploy: KEIN automatischer Revert. Melde Parent, Parent entscheidet mit User.
+**Constraint:** on a stack crash post-deploy: NO automatic revert. Report to the parent; the parent decides with the user.
 
-## Hard-Caps
+## Hard caps
 
-- Max 3 Implementer↔Critic Revise-Runden
-- Max Wallclock 90 Min — bei Ueberschreitung Pause + Telegram-Text
-- 3x Build-Fail im Tester → ESCALATE
+- Max 3 Implementer↔Critic revise rounds
+- Max wallclock 90 min — on overrun, pause + Telegram text
+- 3x build fails in Tester → ESCALATE
 
-## Telegram / Channel-Updates
+## Telegram / channel updates
 
-Wenn aus `<channel>`-Inbound aufgerufen:
-- **Pre-Stage-1:** "Loop fuer #N startet, Stage 1 laeuft"
-- **Zwischen Stages:** `Stage N (<name>) → <verdict>. Stage N+1 startet.`
-- **Pre-Tester-mit-Live-Ping:** Warnung wenn Test-Plan Live-Channel-Ping erzeugt
-- **Post-Closer:** Erfolgs-Report mit PR-Link, Wallclock, Iterations-Count
+When invoked from a `<channel>` inbound:
+- **Pre-stage-1:** "Loop for #N starting, stage 1 running"
+- **Between stages:** `Stage N (<name>) → <verdict>. Stage N+1 starting.`
+- **Pre-Tester with live ping:** warn if the test plan produces a live-channel ping
+- **Post-Closer:** success report with PR link, wallclock, iteration count
 
-Channel/chat_id aus Inbound-Meta uebernehmen.
+Channel/chat_id taken from the inbound meta.
 
-## Issue-Kommentar-Konvention
+## Issue-comment convention
 
-Jeder Kommentar startet mit `## [stage:<name>] <verdict>` damit Audit-Log scannable bleibt. Subagents kriegen das im Briefing vorgegeben.
+Every comment starts with `## [stage:<name>] <verdict>` to keep the audit log scannable. Subagents receive this in their briefing.
 
-## Abgrenzung zu /create-issue und /init-agents
+## Scope boundaries vs. /create-issue and /init-agents
 
-| Skill | Wann |
+| Skill | When |
 |-------|------|
-| `/init-agents` | Repo hat noch keine AGENTS.md → Bootstrap (einmalig pro Repo) |
-| `/create-issue` | Idee → vollstaendig spezifiziertes GitHub-Issue (Genesis-Phase) |
-| `/work-issue` | Issue mit Spec → Build-Loop bis Merge (Execution-Phase) |
+| `/init-agents` | Repo has no AGENTS.md yet → bootstrap (once per repo) |
+| `/create-issue` | Idea → fully-specified GitHub issue (genesis phase) |
+| `/work-issue` | Issue with spec → build loop until merge (execution phase) |
 
-Wenn `/work-issue` ohne Issue-Nummer aufgerufen wird ODER das Issue keinen Spec hat (kein AC, keine Files-To-Touch) → fragt User: "Issue ist unvollstaendig. Soll ich `/create-issue --refine <num>` aufrufen?"
+If `/work-issue` is called without an issue number OR the issue has no spec (no AC, no files-to-touch) → ask the user: "Issue is incomplete. Should I call `/create-issue --refine <num>`?"
 
-Wenn AGENTS.md im Repo fehlt → STOP mit Pointer auf `/init-agents` (siehe Pre-Flight-Check oben). Kein Auto-Fallback.
+If AGENTS.md is missing in the repo → STOP with a pointer to `/init-agents` (see the pre-flight check above). No auto-fallback.
 
-## Was der Skill NICHT macht
+## What this skill does NOT do
 
-- Plant nicht selber neue Issues (das ist `/create-issue`)
-- Legt keine AGENTS.md selber an (das ist `/init-agents`)
-- Cross-Repo-Dependencies werden nur als CLOSED-Check geprueft, nicht auto-vorher-werken
-- Erstellt keine ADRs
-- Macht keinen Auto-Revert bei Stack-Crash
+- Does not plan new issues itself (that is `/create-issue`)
+- Does not create AGENTS.md itself (that is `/init-agents`)
+- Cross-repo dependencies are only checked as CLOSED, not auto-worked beforehand
+- Does not create ADRs
+- Does not auto-revert on a stack crash
 
-## Loop-Engineering-Pattern (Referenz)
+## Loop-engineering pattern (reference)
 
-Aus Drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_claude / 2026-06-21):
+From drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_claude / 2026-06-21):
 
-| Feld | Hier |
-|------|------|
+| Field | Here |
+|-------|------|
 | Trigger | `/work-issue <num> [--repo <slug>]` |
-| Iteration | 5 Stages, Revise-Loop bei Critic-REVISE |
-| Persistenz | Issue-Kommentare + `/tmp/loop-*.json` + MemPalace-Drawer am Ende |
-| Stop-Kriterium | Critic-APPROVE + Closer-Merge + Deploy ok |
-| Eskalation | Telegram-Text bei STOP/ESCALATE/Hard-Cap |
+| Iteration | 5 stages, revise loop on Critic REVISE |
+| Persistence | issue comments + `/tmp/loop-*.json` + MemPalace drawer at the end |
+| Stop criterion | Critic APPROVE + Closer merge + deploy OK |
+| Escalation | Telegram text on STOP/ESCALATE/hard-cap |
 
-## Siehe auch
+## See also
 
-- `skills/init-agents/SKILL.md` — Bootstrap-Pflicht VOR dem ersten Lauf in einem Repo
-- `skills/create-issue/SKILL.md` — Issue-Genesis-Phase
+- `skills/init-agents/SKILL.md` — mandatory bootstrap BEFORE the first run in a repo
+- `skills/create-issue/SKILL.md` — issue-genesis phase
 - `skills/work-issue/references/repo-registry.yaml.example`
-- `skills/work-issue/references/subagent-briefs/code-implementer.md` — Code-Loop-Brief
-- `skills/work-issue/references/subagent-briefs/research-implementer.md` — Research-Loop-Brief
+- `skills/work-issue/references/subagent-briefs/code-implementer.md` — code-loop brief
+- `skills/work-issue/references/subagent-briefs/research-implementer.md` — research-loop brief
 - `skills/init-agents/references/AGENTS.md.template`
-- MemPalace-Drawer `b0a7a369` — Loop-Engineering-Pattern (Original)
-- Research-Loop-Erprobung — `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
+- MemPalace drawer `b0a7a369` — loop-engineering pattern (original)
+- Research-loop first test — `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)

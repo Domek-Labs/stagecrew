@@ -1,108 +1,108 @@
 ---
 name: loop
 description: >
-  Loop-engineering workflow umbrella. Routes to /init-agents (bootstrap AGENTS.md for a repo), /create-issue (idea → fully-specified GitHub issue), or /work-issue (issue → merged PR via 5-stage Validator → Implementer → Tester → Critic → Closer pipeline). Triggers: "loop", "loop engineering", "issue durchziehen", "spec build", "coding loop", "github workflow", "github loop", "spec build loop". Routes when intent is unclear.
+  Loop-engineering workflow umbrella. Routes to /init-agents (bootstrap AGENTS.md for a repo), /create-issue (idea → fully-specified GitHub issue), or /work-issue (issue → merged PR via 5-stage Validator → Implementer → Tester → Critic → Closer pipeline). Triggers: "loop", "loop engineering", "work issue", "spec build", "coding loop", "github workflow", "github loop", "spec build loop". Routes when intent is unclear.
 ---
 
 # /loop — Loop-Engineering Workflow (Umbrella)
 
-**Typ:** Umbrella / Router
+**Type:** umbrella / router
 
-## Zweck
+## Purpose
 
-Zentraler Einstiegspunkt fuer den Loop-Engineering-Workflow: GitHub-Issue → merged PR (oder Research-Findings) via 5-Stage-Agent-Pipeline.
+Central entry point for the loop-engineering workflow: GitHub issue → merged PR (or research findings) via a 5-stage agent pipeline.
 
-Drei Sub-Skills decken die drei Phasen ab:
+Three sub-skills cover the three phases:
 
-| Phase | Sub-Skill | Was | Direkter Trigger |
-|-------|-----------|-----|------------------|
-| **Bootstrap** | `/init-agents` | `AGENTS.md` fuer einen Repo anlegen (einmalig pro Repo, Pure-Reader-Voraussetzung) | "init agents", "agents.md anlegen", "coding spec bootstrap", "repo standards initialisieren" |
-| **Genesis** | `/create-issue` | Idee → vollstaendig spezifiziertes GitHub-Issue (Spec-Standard mit Idee/AC/Files/Test-Plan/OoS) | "create issue", "neues issue", "feature anlegen", "spec issue", "idee als ticket" |
-| **Execution** | `/work-issue` | Issue → merged PR via 5 Stages (Validator → Implementer → Tester → Critic → Closer) | "work issue", "issue durchziehen", "loop engineering", "spec build loop" |
+| Phase | Sub-skill | What | Direct trigger |
+|-------|-----------|------|----------------|
+| **Bootstrap** | `/init-agents` | Create `AGENTS.md` for a repo (one-time per repo, pure-reader prerequisite) | "init agents", "create agents.md", "coding spec bootstrap", "initialize repo standards" |
+| **Genesis** | `/create-issue` | Idea → fully-specified GitHub issue (spec standard with Idea/AC/Files/Test-Plan/OoS) | "create issue", "new issue", "create feature", "spec issue", "idea as ticket" |
+| **Execution** | `/work-issue` | Issue → merged PR via 5 stages (Validator → Implementer → Tester → Critic → Closer) | "work issue", "drive issue", "loop engineering", "spec build loop" |
 
-## Workflow auf einen Blick
+## Workflow at a glance
 
 ```
 Bootstrap (once per repo)        Genesis (per feature/bug)       Execution (per issue)
        │                                 │                              │
        ▼                                 ▼                              ▼
   /init-agents          →          /create-issue          →         /work-issue
-  (AGENTS.md)                      (GitHub issue)                   (5-Stage loop → PR merge)
+  (AGENTS.md)                      (GitHub issue)                   (5-stage loop → PR merge)
 ```
 
-Alle drei Sub-Skills sind **Pure-Reader** — sie lesen `AGENTS.md` im Repo-Root als Single-Source-of-Truth fuer Standards. Kein Skill-internes Defaults-Mapping.
+All three sub-skills are **pure-readers** — they read `AGENTS.md` at the repo root as the single source of truth for standards. No skill-internal defaults mapping.
 
-## Typische Reihenfolge fuer neue Repos
-
-```
-1. /init-agents --repo <owner>/<slug>      # AGENTS.md anlegen (einmalig pro Repo)
-2. /create-issue "<idee>"                  # erstes Issue spec'en
-3. /work-issue <num>                       # Issue abarbeiten (Validator → Implementer → Tester → Critic → Closer bis Merge)
-```
-
-Fuer bestehende Repos mit AGENTS.md: Schritt 1 entfaellt — direkt mit `/create-issue` oder `/work-issue` starten.
-
-## Ablauf wenn /loop direkt gerufen wird
-
-Intent klaeren durch Rueckfrage, dann weiter-routen:
+## Typical sequence for new repos
 
 ```
-Was willst du machen?
-
-  1) AGENTS.md fuer neuen Repo anlegen           → /init-agents
-  2) Neue Idee als Issue anlegen                 → /create-issue
-  3) Bestehendes Issue durchziehen (5-Stage)     → /work-issue
-  4) Full-Loop fuer neuen Repo                   → /init-agents → /create-issue → /work-issue
+1. /init-agents --repo <owner>/<slug>      # create AGENTS.md (once per repo)
+2. /create-issue "<idea>"                  # spec the first issue
+3. /work-issue <num>                       # work the issue (Validator → Implementer → Tester → Critic → Closer until merge)
 ```
 
-## Wann welcher Skill
+For existing repos that already have AGENTS.md: skip step 1 — start directly with `/create-issue` or `/work-issue`.
+
+## What happens when /loop is invoked directly
+
+Clarify intent with a single question, then route:
+
+```
+What do you want to do?
+
+  1) Create AGENTS.md for a new repo               → /init-agents
+  2) Capture a new idea as an issue                → /create-issue
+  3) Drive an existing issue (5-stage loop)        → /work-issue
+  4) Full loop for a new repo                      → /init-agents → /create-issue → /work-issue
+```
+
+## When to use which skill
 
 | Situation | Skill |
 |-----------|-------|
-| Neuer Repo, noch keine AGENTS.md | `/init-agents --repo <slug>` |
-| Neue Idee, noch kein Issue (AGENTS.md existiert) | `/create-issue "..."` |
-| Neue Idee, AGENTS.md fehlt | `/create-issue "..."` (ruft `/init-agents` als Pre-Step) |
-| Issue existiert mit vollstaendiger Spec | `/work-issue <num>` |
-| Issue existiert ohne Spec | `/create-issue --refine <num>` ODER manuell Spec ergaenzen, dann `/work-issue` |
-| `/work-issue`s Validator hat STOP gegeben | `/create-issue --refine <num>`, dann `/work-issue` retry |
-| `/work-issue` gibt STOP "AGENTS.md fehlt" | `/init-agents --repo <slug>`, dann `/work-issue` retry |
-| AGENTS.md existiert, hat aber Luecken | `/init-agents --refine --repo <slug>` |
+| New repo, no AGENTS.md yet | `/init-agents --repo <slug>` |
+| New idea, no issue yet (AGENTS.md exists) | `/create-issue "..."` |
+| New idea, AGENTS.md missing | `/create-issue "..."` (calls `/init-agents` as a pre-step) |
+| Issue exists with a complete spec | `/work-issue <num>` |
+| Issue exists without a spec | `/create-issue --refine <num>` OR add the spec manually, then `/work-issue` |
+| `/work-issue`'s Validator returned STOP | `/create-issue --refine <num>`, then `/work-issue` retry |
+| `/work-issue` returns STOP "AGENTS.md missing" | `/init-agents --repo <slug>`, then `/work-issue` retry |
+| AGENTS.md exists but has gaps | `/init-agents --refine --repo <slug>` |
 
-## Beispiel-Calls
+## Example calls
 
 ```
-# Neuer Repo, Full-Loop
+# New repo, full loop
 /init-agents --repo myorg/myrepo
 /create-issue --repo myorg/myrepo "add JWT refresh endpoint"
 /work-issue 42 --repo myorg/myrepo
 
-# Bestehendes Issue durchziehen
+# Drive an existing issue
 /work-issue 17
 
-# Idee schnell als Issue
+# Quick idea → issue
 /create-issue "fix flaky test in checkout-flow.spec.ts"
 
-# Unklarer Intent
+# Unclear intent
 /loop
-# → Rueckfrage, dann Routing zu einem der drei Sub-Skills
+# → asks one question, then routes to one of the three sub-skills
 ```
 
-## Warum Umbrella
+## Why an umbrella
 
-Drei Sub-Skills, eine Klammer: **Loop-Engineering** — der Loop, der eine spezifizierte Aufgabe durch Bootstrap → Genesis → Execution treibt.
+Three sub-skills, one umbrella: **loop engineering** — the loop that drives a specified task through bootstrap → genesis → execution.
 
-- `/init-agents` = Standards-Spec ablegen (in Repo-AGENTS.md)
-- `/create-issue` = Intent ablegen (in GitHub-Issue)
-- `/work-issue` = Intent ausfuehren (Issue → merged PR)
+- `/init-agents` = capture standards (in the repo's AGENTS.md)
+- `/create-issue` = capture intent (in a GitHub issue)
+- `/work-issue` = execute intent (issue → merged PR)
 
 ## Roadmap
 
-- **v4.1.0 (Multi-Type-Loops, Issue #22):** dasselbe 5-Stage-Skelett fuer Non-Code-Loops — Text-Loop, Decision-Loop, Diagnostic-Loop.
-- **v4.2.0 (Public Flip, Issue #23):** LICENSE, Secret-Sweep, Repo-Visibility-Public.
+- **v4.1.0 (multi-type loops, issue #22):** same 5-stage skeleton for non-code loops — text loop, decision loop, diagnostic loop.
+- **v4.2.0 (public flip, issue #23):** LICENSE, secret sweep, repo-visibility public.
 
-## Siehe auch
+## See also
 
 - `skills/init-agents/SKILL.md`
 - `skills/create-issue/SKILL.md`
 - `skills/work-issue/SKILL.md`
-- `../CLAUDE.md` (Plugin-Quickstart)
+- `../CLAUDE.md` (plugin quickstart)

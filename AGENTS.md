@@ -9,18 +9,18 @@ work-issue:
   deploy_command: ""
   linter: ""
   hard_gates:
-    - "Kein direkter Edit auf main"
-    - "Keine neuen Secrets im Repo"
-    - "SKILL.md braucht YAML-Frontmatter (name/description/model)"
-    - "Plugin-Cache reload (claude restart) nach SKILL.md-Aenderung sonst alte Version aktiv"
-    - "Bei Version-Bump muss .claude-plugin/plugin.json synchron mit Plugin-Cache-Pfad sein"
+    - "No direct edits on main"
+    - "No new secrets in repo"
+    - "SKILL.md requires YAML frontmatter (name/description/model)"
+    - "Plugin cache reload (claude restart) after SKILL.md changes — otherwise stale version stays active"
+    - "On version bump, .claude-plugin/plugin.json must stay in sync with the plugin cache path"
   default_oos:
-    - "Keine Code-Generation (Repo ist Markdown-only)"
-    - "Keine Migration alter Skill-Versionen ohne explizite User-Freigabe"
+    - "No code generation (this repo is Markdown-only)"
+    - "No migration of older skill versions without explicit user approval"
   ac_templates:
-    - "CLAUDE.md am Repo-Root reflektiert die Aenderung"
-    - "SKILL.md hat valides YAML-Frontmatter"
-    - ".claude-plugin/plugin.json ist konsistent (Version, Name)"
+    - "CLAUDE.md at the repo root reflects the change"
+    - "SKILL.md has valid YAML frontmatter"
+    - ".claude-plugin/plugin.json is consistent (version, name)"
 loop_types:
   enabled: [code, research]
   default: code
@@ -30,60 +30,60 @@ loop_types:
       smoke_test: "true"
     # Roadmap (v3.4.0+):
     # text:
-    #   ac_templates: ["markdownlint passt", "linkcheck gruen"]
+    #   ac_templates: ["markdownlint passes", "linkcheck green"]
     # decision:
-    #   ac_templates: ["ADR-Format korrekt", "Constraint-Coverage vollstaendig"]
+    #   ac_templates: ["ADR format correct", "constraint coverage complete"]
     # diagnostic:
-    #   ac_templates: ["Hypothesen reproduzierbar", "Fix-Spec klar"]
+    #   ac_templates: ["hypotheses reproducible", "fix spec clear"]
 ---
 
 # Agent Instructions for loop-engineering-workflow
 
-Per-Repo Coding-Standards-Spec fuer AI-gestuetzte Workflows. Single-Source-of-Truth fuer dieses Plugin-Repo selbst (Dogfooding — wir nutzen `/work-issue` um an `/work-issue` zu entwickeln).
+Per-repo coding-standards spec for AI-assisted workflows. Single source of truth for this plugin repo itself (dogfooding — we use `/work-issue` to evolve `/work-issue`).
 
-## Architektur
+## Architecture
 
-Single-Plugin-Repo fuer das `loop-engineering-workflow` Claude-Code-Plugin.
+Single-plugin repo for the `loop-engineering-workflow` Claude Code plugin.
 
-- `.claude-plugin/plugin.json` — Plugin-Manifest (Name, Version)
-- `CLAUDE.md` — Plugin-Doku
-- `README.md` — Public-Audience-Tagline + Quickstart
+- `.claude-plugin/plugin.json` — plugin manifest (name, version)
+- `CLAUDE.md` — plugin documentation
+- `README.md` — public-audience tagline + quickstart
 - `skills/`
-  - `loop/` — Umbrella-Skill (Router zu init-agents / create-issue / work-issue)
-  - `init-agents/` — Bootstrap AGENTS.md fuer einen Repo
-  - `create-issue/` — Idee → GitHub-Issue mit Spec-Standard
-  - `work-issue/` — Issue → Merge-Loop bis Merge (5-Stage Spec→Build-Loop)
+  - `loop/` — umbrella skill (router to init-agents / create-issue / work-issue)
+  - `init-agents/` — bootstrap AGENTS.md for a repo
+  - `create-issue/` — idea → GitHub issue with spec standard
+  - `work-issue/` — issue → merged PR (5-stage spec→build loop)
 
-## Code-Style / Conventions
+## Code Style / Conventions
 
-- Repo ist **Markdown-only**. Keine TS/JS/Python.
-- SKILL.md **muss** YAML-Frontmatter haben mit Pflicht-Feldern `name`, `description`, optional `model`, `allowed-tools`.
-- Description-Field: lowercase, kommagetrennte Trigger-Wörter (keine inline-`Trigger:`-Praefixe — das bricht strict YAML).
-- Commit-Format: conventional (`feat(skill): ...`, `fix(create-issue): ...`, `docs: ...`).
-- Branch-Pattern: `feature/<short>` oder `fix/<short>`.
+- The repo is **Markdown-only**. No TS/JS/Python.
+- SKILL.md **must** carry a YAML frontmatter with the required fields `name`, `description`, optional `model`, `allowed-tools`.
+- Description field: lowercase, comma-separated trigger words (no inline `Trigger:` prefixes — they break strict YAML).
+- Commit format: conventional (`feat(skill): ...`, `fix(create-issue): ...`, `docs: ...`).
+- Branch pattern: `feature/<short>` or `fix/<short>`.
 
-## Loop-Types (v3.3.0 Multi-Type-System)
+## Loop Types (v3.3.0 multi-type system)
 
-Dieser Skill unterstuetzt seit v3.3.0 mehrere Issue-Types:
-- **`code`** (default) — Software-Implementation-Tasks
-- **`research`** — Erkenntnis-Generierung mit Test-Matrix
+This skill set supports multiple issue types since v3.3.0:
+- **`code`** (default) — software implementation tasks
+- **`research`** — knowledge generation with a test matrix
 
-Erprobt in:
-- Code-Loops: 13 PRs in `dscheinecker-at7media/personal-ai-bot` (2026-06-26)
-- Research-Loop: `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
+Battle-tested in:
+- Code loops: 13 PRs in `dscheinecker-at7media/personal-ai-bot` (2026-06-26)
+- Research loop: `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
 
-Roadmap fuer `text`, `decision`, `diagnostic` Types — siehe Repo-Issues mit Label `roadmap` + `loop-type`.
+Roadmap for `text`, `decision`, `diagnostic` types — see repo issues with labels `roadmap` + `loop-type`.
 
 ## Hard-Gates Detail
 
-1. **Kein direkter Edit auf main** — PR-Flow Pflicht, branch-protection sollte aktiv sein (wenn nicht: einrichten).
-2. **Keine neuen Secrets im Repo** — kritisch da spaeter Public-Flip geplant ist.
-3. **SKILL.md YAML-Frontmatter** — Loader-tolerant aber strict-YAML compliance ist Pflicht (sonst CI-Brueche bei kuenftigen Validator-Tools).
-4. **Plugin-Cache reload nach Skill-Aenderungen** — `claude restart` Pflicht in jedem PR-Body.
-5. **plugin.json Version-Bump synchron** — Plugin-Cache-Pfad nutzt Version, asynchroner Bump = stale Cache.
+1. **No direct edits on main** — PR flow mandatory, branch protection should be enabled (if not: enable it).
+2. **No new secrets in repo** — critical because a public flip is planned later.
+3. **SKILL.md YAML frontmatter** — the loader is tolerant but strict-YAML compliance is mandatory (otherwise CI breaks against future validator tooling).
+4. **Plugin cache reload after skill changes** — `claude restart` is mandatory in every PR body.
+5. **plugin.json version bump in sync** — the plugin cache path uses the version, so an asynchronous bump leaves a stale cache.
 
-## Plugin-Loader-Gotchas
+## Plugin-Loader Gotchas
 
-- Cache-Pfad: `~/.claude/plugins/cache/loop-engineering-workflow/<version>/skills/<name>/SKILL.md`
-- Marketplace-Source: kann lokaler Pfad sein (Development) oder GitHub-URL (Production-Public)
-- Bei Version-Bump in `plugin.json`: alter Cache-Pfad bleibt, neuer Pfad wird erstellt — `claude restart` zwingend
+- Cache path: `~/.claude/plugins/cache/loop-engineering-workflow/<version>/skills/<name>/SKILL.md`
+- Marketplace source: can be a local path (development) or a GitHub URL (public production)
+- On a `plugin.json` version bump, the old cache path stays and a new path is created — `claude restart` is required.

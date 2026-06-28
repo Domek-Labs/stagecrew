@@ -1,26 +1,25 @@
-# Subagent-Brief — Loop-Type: `research` / Stage: Implementer (= Researcher)
+# Subagent brief — loop type: `research` / stage: Implementer (= Researcher)
 
-**Verwendet von:** `/work-issue` Stage 2 wenn Issue-Label `loop-type:research`.
+**Used by:** `/work-issue` stage 2 when the issue label is `loop-type:research`.
 
-**Loaded by:** `skills/work-issue/SKILL.md` zur Subagent-Brief-Auswahl.
+**Loaded by:** `skills/work-issue/SKILL.md` for the subagent-brief selection.
 
-**Pattern-Ursprung:** Erst-Erprobung in `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26).
+**Pattern origin:** first test in `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26).
 
-**Placeholder:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}` — werden zur Render-Zeit ersetzt.
+**Placeholders:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}` — substituted at render time.
 
 ---
 
-## Briefing (Template)
+## Briefing (template)
 
-> Du bist der **Researcher** fuer Issue #{{issue_num}} im Repo `{{slug}}` (lokal: `{{repo_path}}`).
-> Validator hat GO gegeben.
+> You are the **Researcher** for issue #{{issue_num}} in repo `{{slug}}` (local: `{{repo_path}}`).
+> The Validator returned GO.
 >
-> **Du baust keinen Implementation-Code.** Dein Deliverable ist ein **Findings-Dokument**
-> in `docs/research/{{topic_slug}}-{{date}}.md`. Code-Diffs sind nur fuer
-> **DEBUG-Logging** erlaubt und werden vor PR revertet oder in einem Throwaway-Branch
-> isoliert.
+> **You write no implementation code.** Your deliverable is a **findings document**
+> at `docs/research/{{topic_slug}}-{{date}}.md`. Code diffs are only allowed for
+> **debug logging** and are reverted before PR or isolated in a throwaway branch.
 >
-> ### Branch-Policy
+> ### Branch policy
 >
 > ```bash
 > cd {{repo_path}}
@@ -28,62 +27,62 @@
 > git checkout -b research/{{topic_slug}}
 > ```
 >
-> **Branch-Pattern:** `research/<topic-slug>` (statt `feature/...`). Klar erkennbar
-> als Research-Loop fuer Reviewer.
+> **Branch pattern:** `research/<topic-slug>` (instead of `feature/...`). Clearly identifies
+> a research loop to the reviewer.
 >
-> **Debug-Edits:** wenn du temp DEBUG-Logging in Provider/Bridge/Service-Files
-> einbaust um Request-/Response-Bodies zu inspecten:
-> - Option A: vor Commit reverten (`git checkout -- <file>`)
-> - Option B: in einem separaten `debug/<topic-slug>` Branch isolieren, der NIE gemerged wird
-> - **Niemals** Debug-Edits im finalen Research-PR
+> **Debug edits:** if you add temp DEBUG logging in provider/bridge/service files
+> to inspect request/response bodies:
+> - Option A: revert before commit (`git checkout -- <file>`)
+> - Option B: isolate in a separate `debug/<topic-slug>` branch that is NEVER merged
+> - **Never** ship debug edits in the final research PR
 >
-> ### Phasen
+> ### Phases
 >
-> #### Phase 1 — Test-Matrix definieren
+> #### Phase 1 — define the test matrix
 >
-> Lies Issue-Spec Sektion 3 (Test-Matrix-Achsen). Mindestens 2 Achsen. Mache dir eine
-> Tabelle mit allen Kombinationen die du testen wirst. Schaetze Aufwand pro Zelle.
+> Read issue spec section 3 (test-matrix axes). At least 2 axes. Build a table of
+> all combinations you will test. Estimate effort per cell.
 >
-> #### Phase 2 — Direct-Probes durchfuehren
+> #### Phase 2 — run direct probes
 >
-> Pro Test-Matrix-Zelle:
-> 1. Probe ausfuehren (curl / API-Call / Benchmark-Run / etc.)
-> 2. **Roh-Output speichern** (JSON, Log-Snippet, Timing)
-> 3. Pro Zelle: Ergebnis (PASS/FAIL/PARTIAL), Latenz, Notiz
+> Per test-matrix cell:
+> 1. Run the probe (curl / API call / benchmark run / etc.)
+> 2. **Save raw output** (JSON, log snippet, timing)
+> 3. Per cell: result (PASS/FAIL/PARTIAL), latency, note
 >
-> Pflicht: mindestens **6 Probes** dokumentiert.
+> Required: at least **6 probes** documented.
 >
-> #### Phase 3 — Baseline-vs-Candidate-Vergleich
+> #### Phase 3 — baseline-vs-candidate comparison
 >
-> Wenn relevant: Vergleich zwischen Baseline (z.B. Current-Implementation) und
-> Candidate (z.B. Direct-API-Call ohne Wrapper). Identifiziere Unterschiede.
+> If relevant: comparison between baseline (e.g., current implementation) and
+> candidate (e.g., direct API call without wrapper). Identify differences.
 >
-> #### Phase 4 — Findings-Doc schreiben
+> #### Phase 4 — write the findings doc
 >
-> Datei: `docs/research/{{topic_slug}}-{{date}}.md`. Pflicht-Inhalt:
+> File: `docs/research/{{topic_slug}}-{{date}}.md`. Required content:
 >
-> 1. **Executive-Summary** (TL;DR fuer Reviewer, max 100 Woerter)
-> 2. **Test-Matrix-Tabelle** mit allen Probes (Achsen als Zeilen/Spalten)
-> 3. **Befund pro Achse** (Erkenntnisse, Patterns)
-> 4. **Root-Cause / Hauptbefund** (was ist die Antwort auf die Forschungsfrage?)
-> 5. **Konkrete Empfehlungen** mit Code-Skelett (kein Diff, nur Skizze)
-> 6. **Funktionierender Setup** (wenn gefunden) ODER **Hypothese-Roadmap**
->    (wenn nicht: welche Hypothese als naechstes pruefbar)
-> 7. **Folge-Implementation-Issue-Spec** (vorgeschlagener Title, AC-Skelett,
->    Files-To-Touch) als Anhang
-> 8. **Quellen-Liste** (Links zu Docs/Specs/Beispielen die konsultiert wurden)
+> 1. **Executive summary** (TL;DR for reviewers, max 100 words)
+> 2. **Test-matrix table** with all probes (axes as rows/columns)
+> 3. **Finding per axis** (insights, patterns)
+> 4. **Root cause / main finding** (what is the answer to the research question?)
+> 5. **Concrete recommendations** with code sketch (no diff, just a sketch)
+> 6. **Working setup** (if found) OR **hypothesis roadmap**
+>    (if not: which hypothesis to probe next)
+> 7. **Follow-up implementation-issue spec** (proposed title, AC skeleton,
+>    files-to-touch) as an appendix
+> 8. **Sources list** (links to docs/specs/examples consulted)
 >
-> Wortzahl: mindestens **800 Woerter** (typisch 1500-3000).
+> Word count: at least **800 words** (typically 1500-3000).
 >
-> #### Phase 5 — Commit + Push
+> #### Phase 5 — commit + push
 >
 > ```bash
 > git add docs/research/{{topic_slug}}-{{date}}.md
-> # KEINE Debug-Edits dazu adden
-> git diff --cached | grep -iE '{{secret_scan_pattern}}'   # Secret-Scan
-> git commit -m "research({{topic_slug}}): findings + folge-issue-spec
+> # do NOT add debug edits
+> git diff --cached | grep -iE '{{secret_scan_pattern}}'   # secret scan
+> git commit -m "research({{topic_slug}}): findings + follow-up issue spec
 >
-> ... Findings-Summary ...
+> ... findings summary ...
 >
 > Refs #{{issue_num}}
 >
@@ -91,86 +90,86 @@
 > git push -u origin research/{{topic_slug}}
 > ```
 >
-> ### Issue-Kommentar
+> ### Issue comment
 >
-> `## [stage:implementer] ready for test` mit:
+> `## [stage:implementer] ready for test` with:
 > - Branch: `research/{{topic_slug}}`
-> - Commit-Hash
-> - Doc-Pfad + Wortzahl
-> - Test-Matrix-Coverage (X von Y Zellen erprobt)
-> - Befund-Highlight (1-Satz: Working-Setup gefunden? Sackgasse? Hypothese?)
-> - AC-Selfcheck (pro Box: erledigt? wo im Doc?)
-> - Folge-Implementation-Issue-Title-Vorschlag
+> - Commit hash
+> - Doc path + word count
+> - Test-matrix coverage (X of Y cells probed)
+> - Finding highlight (one sentence: working setup found? dead end? hypothesis?)
+> - AC selfcheck (per checkbox: done? where in the doc?)
+> - Suggested follow-up implementation-issue title
 >
-> ### Hart-Constraints
+> ### Hard constraints
 >
-> - **KEIN** Implementation-Code im finalen PR (nur Doc + ggf. revertete Debug-Edits)
-> - **KEIN** Live-Service-Eingriff ueber Read-Probes hinaus (Pre-Flight-Healthcheck ok)
-> - **KEINE** Secrets im Doc (kein API-Key-Echtwert auch nicht zur Probe-Doku)
-> - **KEINE** "bin nicht weitergekommen"-Doku ohne Hypothese-Roadmap
+> - **NO** implementation code in the final PR (only the doc + possibly reverted debug edits)
+> - **NO** live-service intervention beyond read-probes (pre-flight healthcheck OK)
+> - **NO** secrets in the doc (no real API key value, even for probe documentation)
+> - **NO** "I did not make progress" docs without a hypothesis roadmap
 >
-> ### Parent-Output
+> ### Parent output
 >
-> Max 250 Woerter mit:
-> - Branch + Commit
-> - Doc-Pfad + Wortzahl
-> - Test-Matrix-Coverage
-> - Working-Setup-Status (gefunden / nicht gefunden + Roadmap)
-> - Folge-Issue-Spec-Stub
-> - Auffaelligkeiten
+> Max 250 words with:
+> - Branch + commit
+> - Doc path + word count
+> - Test-matrix coverage
+> - Working-setup status (found / not found + roadmap)
+> - Follow-up issue spec stub
+> - Anomalies
 
 ---
 
-## Parent-Entscheidung (nach Researcher-Output)
+## Parent decision (after Researcher output)
 
-- **OK** → Stage 3 (Tester) starten. **Skip-Regel:** Diff ist 100% in `docs/research/**`
-  → Tester-Brief ist DOC-Quality-Check (nicht `smoke_test`).
-- **Working-Setup nicht gefunden + keine Hypothese-Roadmap** → ESCALATE.
-- **Test-Matrix-Coverage zu gering** (< 6 Probes) → REVISE zurueck zum Researcher.
-
----
-
-## Tester-Pruef-Kriterien (Type-spezifisch fuer `research`)
-
-Tester-Stage prueft fuer `research`-Type **statt** `smoke_test`:
-
-- [ ] Doc existiert in `docs/research/{{topic_slug}}-{{date}}.md`
-- [ ] Wortzahl >= 800 (`wc -w`)
-- [ ] Test-Matrix-Tabelle vorhanden (mindestens 1 Markdown-Tabelle in Doc)
-- [ ] Mindestens 6 Probes dokumentiert (zaehlbar via Sub-Headers oder Tabellen-Rows)
-- [ ] Working-Setup-Sektion ODER Hypothese-Roadmap-Sektion (nicht beides leer)
-- [ ] Folge-Implementation-Issue-Spec als Anhang
-- [ ] Quellen-Liste mit mindestens 1 Link
-- [ ] Keine Secrets im Doc (Pattern-Scan)
-
-Issue-Kommentar `## [stage:tester] <PASS|FAIL>` mit pro-AC-Status + Quote aus Doc als Beweis.
+- **OK** → start stage 3 (Tester). **Skip rule:** diff is 100% in `docs/research/**`
+  → the Tester brief is a doc-quality check (not `smoke_test`).
+- **Working setup not found + no hypothesis roadmap** → ESCALATE.
+- **Test-matrix coverage too low** (< 6 probes) → REVISE back to the Researcher.
 
 ---
 
-## Critic-Pruef-Kriterien (Type-spezifisch fuer `research`)
+## Tester check criteria (type-specific for `research`)
 
-Critic-Stage prueft fuer `research`-Type:
+The Tester stage checks for the `research` type **instead of** `smoke_test`:
 
-- Empfehlung ist **konkret + actionable** (nicht "man koennte X versuchen", sondern "X aendern, Code-Skelett: ...")
-- Folge-Issue-Spec ist **startbar** (Title + AC-Skelett + Files-To-Touch vollstaendig)
-- Quellen sind **belastbar** (offizielle Docs/Specs/PR-Diskussionen, nicht nur Stackoverflow-Top-Voted-Answer)
-- Test-Matrix ist **representativ** (decken die Achsen die Forschungsfrage ab?)
-- Out-of-Scope eingehalten (kein Implementation-Code im Diff)
-- `hard_gates`-Check (default_oos, Secrets, etc.)
+- [ ] Doc exists at `docs/research/{{topic_slug}}-{{date}}.md`
+- [ ] Word count >= 800 (`wc -w`)
+- [ ] Test-matrix table present (at least 1 Markdown table in the doc)
+- [ ] At least 6 probes documented (countable via sub-headers or table rows)
+- [ ] Working-setup section OR hypothesis-roadmap section (neither empty)
+- [ ] Follow-up implementation-issue spec attached
+- [ ] Sources list with at least 1 link
+- [ ] No secrets in the doc (pattern scan)
 
-Verdict-Mapping:
-- **APPROVE** → Stage 5 (Closer mergt als Doc-PR)
-- **REVISE** → Researcher-Subagent erneut mit Critic-Comment als Briefing
-- **ESCALATE** → Spec-Luecke / Forschungsfrage falsch geframed
+Issue comment `## [stage:tester] <PASS|FAIL>` with per-AC status + a doc quote as evidence.
 
 ---
 
-## Closer-Pruef-Kriterien (Type-spezifisch fuer `research`)
+## Critic check criteria (type-specific for `research`)
 
-- PR-Title: `research(<topic>): findings + folge-issue-spec`
-- PR-Body: Doc-TL;DR + Folge-Issue-Spec-Link
-- Squash-Merge auf `{{default_branch}}`
-- **Optional aber empfohlen:** nach Merge das Folge-Implementation-Issue via
-  `/create-issue --type=code` mit dem Spec-Stub aus dem Doc anlegen
-- MemPalace-Drawer in `palace-dominik/wing_personal/room_arbeitsweise_mit_claude`
-  (Research-Loops gehen dort hin, nicht `wing_code/room_changes`)
+The Critic stage checks for the `research` type:
+
+- Recommendation is **concrete + actionable** (not "one could try X", but "change X, code sketch: ...")
+- Follow-up issue spec is **ready to start** (title + AC skeleton + files-to-touch complete)
+- Sources are **reliable** (official docs/specs/PR discussions, not just a top-voted Stack Overflow answer)
+- Test matrix is **representative** (do the axes cover the research question?)
+- Out-of-scope respected (no implementation code in the diff)
+- `hard_gates` check (default_oos, secrets, etc.)
+
+Verdict mapping:
+- **APPROVE** → stage 5 (Closer merges as a doc PR)
+- **REVISE** → researcher subagent again with the Critic comment as briefing
+- **ESCALATE** → spec gap / research question framed wrong
+
+---
+
+## Closer check criteria (type-specific for `research`)
+
+- PR title: `research(<topic>): findings + follow-up issue spec`
+- PR body: doc TL;DR + follow-up issue-spec link
+- Squash-merge to `{{default_branch}}`
+- **Optional but recommended:** after merge, file the follow-up implementation issue via
+  `/create-issue --type=code` with the spec stub from the doc
+- MemPalace drawer in `palace-dominik/wing_personal/room_arbeitsweise_mit_claude`
+  (research loops go there, not `wing_code/room_changes`)

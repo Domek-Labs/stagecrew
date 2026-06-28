@@ -2,24 +2,24 @@
 loop-type: code
 ---
 
-# Issue-Template — Loop-Type: `code`
+# Issue template — loop type: `code`
 
-**Verwendet von:** `/create-issue --type=code` (default).
+**Used by:** `/create-issue --type=code` (default).
 
-**Wann:** Software-Implementation-Tasks — Feature, Bug-Fix, Refactoring, Dependency-Update.
+**When:** software implementation tasks — feature, bug fix, refactor, dependency update.
 
-**Deliverable:** PR mit Code-Diff + Tests, gemerged auf `pr_base` aus AGENTS.md.
+**Deliverable:** PR with code diff + tests, merged to `pr_base` from AGENTS.md.
 
-**Implementer-Brief:** `skills/work-issue/references/subagent-briefs/code-implementer.md`
+**Implementer brief:** `skills/work-issue/references/subagent-briefs/code-implementer.md`
 
 ---
 
-## Rendered-Body-Schema (Placeholder mit `{{...}}`)
+## Rendered body schema (placeholders with `{{...}}`)
 
-Dieses Template wird vom Skill-Body (Spec-Dialog) gerendert. Placeholder werden zur Render-Zeit ersetzt. Pflicht-Sektionen sind exakt diese, in dieser Reihenfolge — `/work-issue`s Validator pruefen sie strict.
+This template is rendered by the skill body (spec dialog). Placeholders are substituted at render time. Required sections are exactly these, in this order — `/work-issue`'s Validator checks them strictly.
 
 ```markdown
-## Idee (Why)
+## Idea (Why)
 
 {{idea}}
 
@@ -27,22 +27,22 @@ Dieses Template wird vom Skill-Body (Spec-Dialog) gerendert. Placeholder werden 
 
 {{spec}}
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-### aus AGENTS.md `ac_templates` (Pflicht)
+### from AGENTS.md `ac_templates` (required)
 {{ac_templates_block}}
 
 ### Hard-Gates
 {{hard_gates_block}}
 
-### Issue-spezifisch
+### Issue-specific
 {{user_ac_block}}
 
 ## Files to Touch
 
 {{files_to_touch_block}}
 
-## Test-Plan
+## Test Plan
 
 {{test_plan}}
 
@@ -54,50 +54,50 @@ Dieses Template wird vom Skill-Body (Spec-Dialog) gerendert. Placeholder werden 
 
 {{out_of_scope_block}}
 
-## Standards-Override (optional)
+## Standards Override (optional)
 
 {{standards_override_block}}
 
-## Standards-Notes
+## Standards Notes
 
 {{standards_notes_block}}
 ```
 
 ---
 
-## Sektions-Details
+## Section details
 
-### `## Idee (Why)`
+### `## Idea (Why)`
 
-Strategischer Kontext, User-Pain, Outcome. 1-3 Absaetze. Wird im Validator-Briefing geladen.
+Strategic context, user pain, outcome. 1-3 paragraphs. Loaded into the Validator briefing.
 
 ### `## Spec (What)`
 
-Technische Spec, Architektur, betroffene Komponenten. Sub-Headers (`###`) erlaubt.
+Technical spec, architecture, affected components. Sub-headers (`###`) allowed.
 
-### `## Akzeptanzkriterien`
+### `## Acceptance Criteria`
 
-Drei Sub-Blocks:
-1. **`### aus AGENTS.md ac_templates (Pflicht)`** — auto-injiziert aus AGENTS.md (Modus 1) oder Override-Liste (Modus 3) oder leer (Modus 2). Siehe `skills/create-issue/SKILL.md` Sektion "Auto-Injection".
-2. **`### Hard-Gates`** — `hard_gates` aus AGENTS.md (nur wenn nicht durch Issue-Standards-Override deaktiviert).
-3. **`### Issue-spezifisch`** — User-AC aus Spec-Dialog plus Type-Detection-Trigger-AC.
+Three sub-blocks:
+1. **`### from AGENTS.md ac_templates (required)`** — auto-injected from AGENTS.md (mode 1) or override list (mode 3) or empty (mode 2). See `skills/create-issue/SKILL.md` section "Auto-injection".
+2. **`### Hard-Gates`** — `hard_gates` from AGENTS.md (only if not disabled by an issue standards override).
+3. **`### Issue-specific`** — user ACs from the spec dialog plus type-detection trigger ACs.
 
-Jede Box: `- [ ] <konkret, testbar>`.
+Every checkbox: `- [ ] <concrete, testable>`.
 
 ### `## Files to Touch`
 
-Liste mit Pfad-Annotation. Beispiel:
+List with path annotation. Example:
 
 ```
-- `path/a.ts` — was passiert dort
-- `path/b.ts` — was passiert dort
+- `path/a.ts` — what happens there
+- `path/b.ts` — what happens there
 ```
 
-Sub-Headers `### NEU` / `### Geaendert` erlaubt fuer Klarheit.
+Sub-headers `### NEW` / `### Changed` allowed for clarity.
 
-### `## Test-Plan`
+### `## Test Plan`
 
-Welche Smoke-Tests, welcher Build-Command, was beweist Success. Sollte `smoke_test` aus AGENTS.md reflektieren.
+Which smoke tests, which build command, what proves success. Should reflect `smoke_test` from AGENTS.md.
 
 ### `## Dependencies / Blocks`
 
@@ -108,11 +108,11 @@ Welche Smoke-Tests, welcher Build-Command, was beweist Success. Sollte `smoke_te
 
 ### `## Out of Scope`
 
-Mindestens `default_oos` aus AGENTS.md plus Issue-spezifisch.
+At minimum `default_oos` from AGENTS.md plus issue-specific.
 
-### `## Standards-Override` (optional)
+### `## Standards Override` (optional)
 
-Nur einfuegen wenn Issue von AGENTS.md abweicht. YAML-Block:
+Only insert if the issue diverges from AGENTS.md. YAML block:
 
 ```yaml
 work-issue:
@@ -120,57 +120,58 @@ work-issue:
   smoke_test: "<custom>"
 ```
 
-### `## Standards-Notes`
+### `## Standards Notes`
 
-Optional. Begruendungen fuer `DISMISS` von Type-Detection-Triggern oder `ac_templates`-Overrides. Wird im Critic-Briefing gelesen.
-
----
-
-## Issue-Labels (automatisch gesetzt)
-
-- `loop-type:code` — Pflicht, wird von `/work-issue` zur Subagent-Brief-Auswahl benutzt.
-- `enhancement` / `bug` / `refactor` — je nach Trigger-Detection (siehe Skill-Body).
-- Weitere Labels aus Type-Detection-Trigger (#1-#6) — siehe `skills/create-issue/SKILL.md`.
+Optional. Reasoning for `DISMISS` on type-detection triggers or `ac_templates` overrides. Read in the Critic briefing.
 
 ---
 
-## Beispiel (gerendert)
+## Issue labels (auto-set)
+
+- `loop-type:code` — required; `/work-issue` uses it to pick the subagent brief.
+- `enhancement` / `bug` / `refactor` — per trigger detection (see the skill body).
+- Additional labels from type-detection triggers (#1-#6) — see `skills/create-issue/SKILL.md`.
+
+---
+
+## Example (rendered)
 
 ```markdown
-## Idee (Why)
+## Idea (Why)
 
-Voice-Diff-Review fuer mei: User sendet Voice-Memo "Was hat sich an X geaendert?",
-Bot sucht Diff in Git-History und antwortet als Voice.
+Voice-diff review for mei: the user sends a voice memo "What changed in X?",
+the bot looks up the diff in git history and replies as voice.
 
 ## Spec (What)
 
-OllamaProvider erweitert um `voiceDiffReview` Method. Liest letzten Commit in
-Mei-Bot-Repo, parsed Diff, generiert Summary via Modell-Call, TTS via OpenAI.
+OllamaProvider extended with a `voiceDiffReview` method. Reads the latest commit
+in the mei-bot repo, parses the diff, generates a summary via a model call, TTS
+via OpenAI.
 
-## Akzeptanzkriterien
+## Acceptance Criteria
 
-### aus AGENTS.md `ac_templates` (Pflicht)
+### from AGENTS.md `ac_templates` (required)
 - [ ] Code passes `node --check`
-- [ ] Documentation in README/CLAUDE.md aktualisiert
-- [ ] No new secrets in repo (Secret-Check passed)
+- [ ] Documentation in README/CLAUDE.md updated
+- [ ] No new secrets in repo (secret check passed)
 
 ### Hard-Gates
-- [ ] Kein direkter Edit auf main
-- [ ] Alle MCP-Tools brauchen ein Test-Beispiel im Doc-Block
+- [ ] No direct edits on main
+- [ ] All MCP tools need a test example in the doc block
 
-### Issue-spezifisch
-- [ ] Voice-Memo Trigger "Diff X" erkannt
-- [ ] TTS-Response funktioniert
+### Issue-specific
+- [ ] Voice-memo trigger "diff X" detected
+- [ ] TTS response works
 
 ## Files to Touch
 
-- `packages/mei-runner/src/providers/ollama.ts` — voiceDiffReview Method
-- `packages/mei-runner/src/voice/tts.ts` — TTS-Call
+- `packages/mei-runner/src/providers/ollama.ts` — voiceDiffReview method
+- `packages/mei-runner/src/voice/tts.ts` — TTS call
 
-## Test-Plan
+## Test Plan
 
-`docker compose build && docker compose up -d --force-recreate`, dann Voice-Memo
-senden, OGG-Response zurueckbekommen.
+`docker compose build && docker compose up -d --force-recreate`, then send a
+voice memo, receive an OGG response.
 
 ## Dependencies / Blocks
 
@@ -179,7 +180,7 @@ senden, OGG-Response zurueckbekommen.
 
 ## Out of Scope
 
-- Multi-User-Support
-- Web-Channel-Approvals
-- Andere Modelle als qwen2.5:7b
+- Multi-user support
+- Web-channel approvals
+- Models other than qwen2.5:7b
 ```

@@ -1,62 +1,62 @@
-# Subagent-Brief — Loop-Type: `code` / Stage: Implementer
+# Subagent brief — loop type: `code` / stage: Implementer
 
-**Verwendet von:** `/work-issue` Stage 2 wenn Issue-Label `loop-type:code` (oder Default-Fallback).
+**Used by:** `/work-issue` stage 2 when the issue label is `loop-type:code` (or by default fallback).
 
-**Loaded by:** `skills/work-issue/SKILL.md` zur Subagent-Brief-Auswahl.
+**Loaded by:** `skills/work-issue/SKILL.md` for the subagent-brief selection.
 
-**Placeholder:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}` — werden zur Render-Zeit aus AGENTS.md-Cache + State-Tracker ersetzt.
+**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}` — substituted at render time from the AGENTS.md cache + state tracker.
 
 ---
 
-## Briefing (Template)
+## Briefing (template)
 
-> Du implementierst Issue #{{issue_num}} im Repo `{{slug}}` (lokal: `{{repo_path}}`).
-> Validator hat GO gegeben.
+> You are implementing issue #{{issue_num}} in repo `{{slug}}` (local: `{{repo_path}}`).
+> The Validator returned GO.
 >
-> **Standards aus AGENTS.md / Issue-Override (L1+L2):**
+> **Standards from AGENTS.md / issue override (L1+L2):**
 > - `branch_pattern`: `{{branch_pattern}}`
 > - `default_branch`: `{{default_branch}}`
 > - `commit_format`: `{{commit_format}}`
 > - `syntax_check`: `{{syntax_check}}`
 > - `hard_gates`: `{{hard_gates}}`
 >
-> ### Schritte
+> ### Steps
 >
-> 1. **Branch-Setup**
+> 1. **Branch setup**
 >    ```bash
 >    cd {{repo_path}}
 >    git fetch origin && git checkout {{default_branch}} && git pull
->    git checkout -b <branch_aufgeloest-nach-pattern>
+>    git checkout -b <branch-resolved-via-pattern>
 >    ```
->    Branch-Name aus `{{branch_pattern}}` ableiten (z.B. `feature/voice-diff-review`).
+>    Derive the branch name from `{{branch_pattern}}` (e.g., `feature/voice-diff-review`).
 >
-> 2. **Code-Conventions checken via codebase-memory**
+> 2. **Check code conventions via codebase-memory**
 >    ```
->    search_code(<keyword>) -> Sibling-Funktionen + Style-Conventions
+>    search_code(<keyword>) -> sibling functions + style conventions
 >    ```
->    Verstehe wie aehnliche Features im Repo strukturiert sind.
+>    Understand how similar features are structured in the repo.
 >
-> 3. **Implementiere nach Spec**
->    Strict gegen Issue-AC. Jede AC-Box muss am Ende durch dein Diff abgedeckt sein.
+> 3. **Implement to spec**
+>    Strict against the issue ACs. Every AC checkbox must be covered by your diff at the end.
 >
-> 4. **Syntax-Check**
+> 4. **Syntax check**
 >    ```bash
 >    {{syntax_check}}
 >    ```
->    Fehlschlag = STOP, kein Commit. Fix erst Syntax.
+>    Failure = STOP, no commit. Fix the syntax first.
 >
-> 5. **Secret-Scan vor Commit**
+> 5. **Secret scan before commit**
 >    ```bash
 >    git add -A
 >    git diff --cached | grep -iE '{{secret_scan_pattern}}'
 >    ```
->    Default-Pattern wenn nicht ueberschrieben:
+>    Default pattern if not overridden:
 >    `(ghp_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{40,}|TELEGRAM_BOT_TOKEN=[0-9]+:[A-Za-z0-9_-]+|API_KEY=[a-zA-Z0-9]{20,})`
 >
->    Match = **ABORT** mit klarer Hinweis-Message. Kein Commit.
+>    Match = **ABORT** with a clear hint message. No commit.
 >
 > 6. **Commit**
->    Format nach `{{commit_format}}` (typisch `conventional`):
+>    Format per `{{commit_format}}` (typically `conventional`):
 >    ```
 >    <type>(<scope>): <short summary>
 >
@@ -72,55 +72,55 @@
 >    git push -u origin <branch>
 >    ```
 >
-> 8. **Issue-Kommentar** `## [stage:implementer] ready for test` mit:
->    - Branch-Name
->    - Commit-Hash
->    - LOC + Files-Count
->    - AC-Selfcheck (pro Box: erledigt? in welchem Diff?)
->    - Verwendete Standards-Werte (Branch-Pattern aufgeloest, Syntax-Check-Output)
+> 8. **Issue comment** `## [stage:implementer] ready for test` with:
+>    - Branch name
+>    - Commit hash
+>    - LOC + file count
+>    - AC selfcheck (per checkbox: done? in which diff?)
+>    - Standards values used (resolved branch pattern, syntax-check output)
 >
-> ### Hart-Constraints
+> ### Hard constraints
 >
-> - **KEIN** docker/test-run (das ist Tester-Stage)
-> - **KEIN** PR-Create (das ist Closer-Stage)
-> - **KEINE** Hard-Gates-Verletzung (siehe `{{hard_gates}}`)
-> - **KEINE** Edits ausserhalb Files-To-Touch ohne Begruendung im Comment
+> - **NO** docker/test run (that is the Tester stage)
+> - **NO** PR create (that is the Closer stage)
+> - **NO** hard-gates violation (see `{{hard_gates}}`)
+> - **NO** edits outside files-to-touch without reasoning in the comment
 >
-> ### Parent-Output
+> ### Parent output
 >
-> Max 200 Woerter mit:
-> - Branch + Commit
-> - Diff-Stat (Files, LOC)
-> - AC-Coverage-Selfcheck
-> - Auffaelligkeiten (Spec-Luecken, unerwartete Refactorings, Skipped-AC mit Begruendung)
+> Max 200 words with:
+> - Branch + commit
+> - Diff stat (files, LOC)
+> - AC-coverage selfcheck
+> - Anomalies (spec gaps, unexpected refactorings, skipped ACs with reasoning)
 
 ---
 
-## Parent-Entscheidung (nach Implementer-Output)
+## Parent decision (after Implementer output)
 
-- **OK** → Stage 3 (Tester) starten. Skip-Regel: Diff nur in `docs/**` / `*.md` / `// comment` → Tester skippen, direkt Stage 4.
-- **Spec-Luecke zu gross** → ESCALATE. Telegram-Text an User mit Spec-Hint, `/create-issue --refine {{issue_num}}` vorschlagen.
-
----
-
-## Tester-Pruef-Kriterien (Type-spezifisch fuer `code`)
-
-Tester-Stage prueft fuer `code`-Type:
-- `{{smoke_test}}` aus AGENTS.md erfolgreich (Build GREEN, Tests GREEN)
-- Pro AC-Box: konkreter Smoke-Test + Beweis (Log-Snippet, Command-Output)
-- Cleanup: Live-Stack/State zuruecksetzen falls angefasst
-
-Siehe `skills/work-issue/SKILL.md` Stage 3 fuer den vollstaendigen Tester-Brief
-(generisch ueber alle Types).
+- **OK** → start stage 3 (Tester). Skip rule: diff only in `docs/**` / `*.md` / `// comment` → skip Tester, go directly to stage 4.
+- **Spec gap too large** → ESCALATE. Telegram text to the user with a spec hint, suggest `/create-issue --refine {{issue_num}}`.
 
 ---
 
-## Critic-Pruef-Kriterien (Type-spezifisch fuer `code`)
+## Tester check criteria (type-specific for `code`)
 
-Critic-Stage prueft fuer `code`-Type:
-- Pro AC: `search_code` aus codebase-memory fuer Code-Evidence
-- Diff-Quality: Naming, Error-Handling, Cleanup, Security
-- Out-of-Scope-Check gegen `default_oos` + Issue-OoS
-- `hard_gates`-Check
+The Tester stage checks for the `code` type:
+- `{{smoke_test}}` from AGENTS.md succeeds (build GREEN, tests GREEN)
+- Per AC checkbox: concrete smoke test + proof (log snippet, command output)
+- Cleanup: reset live stack/state if touched
 
-Siehe `skills/work-issue/SKILL.md` Stage 4 fuer den vollstaendigen Critic-Brief.
+See `skills/work-issue/SKILL.md` stage 3 for the full Tester brief
+(generic across all types).
+
+---
+
+## Critic check criteria (type-specific for `code`)
+
+The Critic stage checks for the `code` type:
+- Per AC: `search_code` via codebase-memory for code evidence
+- Diff quality: naming, error handling, cleanup, security
+- Out-of-scope check against `default_oos` + issue OoS
+- `hard_gates` check
+
+See `skills/work-issue/SKILL.md` stage 4 for the full Critic brief.
