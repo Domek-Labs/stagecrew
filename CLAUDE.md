@@ -54,9 +54,7 @@ ready as a follow-up issue (pick a research topic and call `/work-issue --type=r
 
 ## Roadmap
 
-- **v4.1.0 — multi-type loops (code + research)** — issue #2 in this repo. **DONE** (with this PR).
-- **v4.1.1 — public-flip prerequisites** (issue #3): LICENSE, secret sweep, README final, plugin.json prep-bump. **DONE** (with this PR).
-- **v4.2.0 — public visibility flip** (separate session, large blast radius).
+See Epic #1 in this repo for the rolling roadmap.
 
 ## License
 
