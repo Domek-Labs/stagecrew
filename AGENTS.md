@@ -69,8 +69,8 @@ This skill set supports multiple issue types since v3.3.0:
 - **`research`** — knowledge generation with a test matrix
 
 Battle-tested in:
-- Code loops: 13 PRs in `dscheinecker-at7media/personal-ai-bot` (2026-06-26)
-- Research loop: `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)
+- Code loops: 13 PRs in an internal bot project (2026-06-26)
+- Research loop: first end-to-end run in an internal bot project (2026-06-26)
 
 Roadmap for `text`, `decision`, `diagnostic` types — see repo issues with labels `roadmap` + `loop-type`.
 

@@ -14,13 +14,13 @@ Drive a fully-specified GitHub issue (Idea + Spec + AC + Files-To-Touch + Test-P
 
 Since **v3.1.0** this skill is a **pure-reader**: no more hardcoded defaults. All standards values (branch_pattern, syntax_check, smoke_test, ...) come from **AGENTS.md at the repo root**. Missing AGENTS.md → STOP with a pointer to `/init-agents`.
 
-Pattern from the loop-engineering drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_claude / 2026-06-21). First test 2026-06-25 with `dscheinecker-at7media/personal-ai-bot#5` (33 min, 2 iterations, all 5 ACs green).
+Pattern from internal loop-engineering experiments (2026-06). First end-to-end test ran in 33 minutes with 2 iterations and all 5 acceptance criteria green.
 
 ## Invocation variants
 
 ```
-/work-issue 5 --repo dscheinecker-at7media/personal-ai-bot
-/work-issue dscheinecker-at7media/personal-ai-bot#5
+/work-issue 5 --repo your-org/your-repo
+/work-issue your-org/your-repo#5
 /work-issue 5                                # → fallback: cwd git repo
 /work-issue                                  # → lists open issues, asks for selection
 ```
@@ -188,8 +188,8 @@ The type-specific check criteria are documented in the corresponding subagent-br
 ```json
 {
   "issue": 5,
-  "repo": "dscheinecker-at7media/personal-ai-bot",
-  "repo_path": "/home/dominik/mei-bot",
+  "repo": "your-org/your-repo",
+  "repo_path": "/abs/path/to/local/checkout",
   "branch": null,
   "default_branch": "main",
   "pr_base": "main",
@@ -337,9 +337,7 @@ The skill loads the matching brief file, replaces placeholders (`{{branch_patter
 > 4. **Type-specific deploy step:**
 >    - **`code` loop:** pull locally + rebuild live stack with `<deploy_command>` (from AGENTS.md or registry). Health check post-deploy.
 >    - **`research` loop:** no deploy (doc-only). Optionally file a follow-up implementation issue via `/create-issue --type=code` with the spec stub from the doc.
-> 5. **MemPalace drawer (type routing):**
->    - **`code` loop:** `palace-dominik/wing_code/room_changes` (repo + PR + commit + loop summary + Tester findings).
->    - **`research` loop:** `palace-dominik/wing_personal/room_arbeitsweise_mit_claude` (loop-pattern insights + doc path + follow-up issue spec).
+> 5. **(Optional) persist a loop summary** in your knowledge system. If you use [MemPalace](https://github.com/MemPalace/mempalace), call `mcp__mempalace__add_drawer` with palace/wing/room suited to your setup — e.g. `<your-palace>/<your-code-wing>/<your-changes-room>` for code loops (repo + PR + commit + loop summary + Tester findings) and `<your-palace>/<your-personal-wing>/<your-process-room>` for research loops (loop-pattern insights + doc path + follow-up issue spec). Skip this step if your team uses a different knowledge store (or none).
 > 6. Issue comment `## [stage:closer] merged & deployed` (or `merged` for research) with PR number + wallclock + drawer ID.
 > 7. Loop state final (`status: "closed"`, `closed_at: ...`).
 >
@@ -389,13 +387,13 @@ If AGENTS.md is missing in the repo → STOP with a pointer to `/init-agents` (s
 
 ## Loop-engineering pattern (reference)
 
-From drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_claude / 2026-06-21):
+Distilled from internal loop-engineering experiments (2026-06):
 
 | Field | Here |
 |-------|------|
 | Trigger | `/work-issue <num> [--repo <slug>]` |
 | Iteration | 5 stages, revise loop on Critic REVISE |
-| Persistence | issue comments + `/tmp/loop-*.json` + MemPalace drawer at the end |
+| Persistence | issue comments + `/tmp/loop-*.json` + optional knowledge-store drawer at the end |
 | Stop criterion | Critic APPROVE + Closer merge + deploy OK |
 | Escalation | Telegram text on STOP/ESCALATE/hard-cap |
 
@@ -407,5 +405,3 @@ From drawer `b0a7a369` (palace-dominik / wing_personal / room_arbeitsweise_mit_c
 - `skills/work-issue/references/subagent-briefs/code-implementer.md` — code-loop brief
 - `skills/work-issue/references/subagent-briefs/research-implementer.md` — research-loop brief
 - `skills/init-agents/references/AGENTS.md.template`
-- MemPalace drawer `b0a7a369` — loop-engineering pattern (original)
-- Research-loop first test — `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26)

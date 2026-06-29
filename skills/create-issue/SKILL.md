@@ -17,9 +17,9 @@ The spec standard matches what `/work-issue`'s Validator expects as a GO criteri
 ## Invocation variants
 
 ```
-/create-issue "voice-diff review for mei"
+/create-issue "voice-diff review for the bot"
 /create-issue --type=research "benchmark ollama tool-use"
-/create-issue --repo dscheinecker-at7media/personal-ai-bot "improve scheduler"
+/create-issue --repo your-org/your-repo "improve scheduler"
 /create-issue                                  # → asks for idea + repo
 /create-issue --refine <num> [--repo <slug>]   # → extend an existing issue with spec fields
 ```

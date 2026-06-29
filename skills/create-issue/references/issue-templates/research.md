@@ -12,7 +12,7 @@ loop-type: research
 
 **Implementer brief (= Researcher):** `skills/work-issue/references/subagent-briefs/research-implementer.md`
 
-**Pattern origin:** first test in `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26).
+**Pattern origin:** first end-to-end test in an internal bot project (2026-06-26).
 
 ---
 
@@ -139,14 +139,13 @@ document the dead ends + the next probe step.
 
 ## Example (rendered, slightly shortened)
 
-See `dscheinecker-at7media/personal-ai-bot#51` as a reference implementation.
+The first end-to-end research loop ran in an internal bot project (2026-06-26).
 
 Key facts there:
 - Topic: ollama-tool-use-debug
 - Doc: `docs/research/ollama-tool-use-debug-2026-06-26.md`
 - Test-matrix axes: models x tool naming x schema verbosity
 - Direct probes: `curl` against `http://localhost:11434/api/chat`
-- Debug edits: temp DEBUG log in `packages/mei-runner/src/providers/ollama.ts`,
-  reverted before commit
+- Debug edits: temp DEBUG log in a provider source file, reverted before commit
 - Follow-up issue spec in the appendix: title "feat(provider): OllamaProvider request-body
   refactor for tool-calls"

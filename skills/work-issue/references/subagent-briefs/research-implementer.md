@@ -4,7 +4,7 @@
 
 **Loaded by:** `skills/work-issue/SKILL.md` for the subagent-brief selection.
 
-**Pattern origin:** first test in `dscheinecker-at7media/personal-ai-bot#51` (2026-06-26).
+**Pattern origin:** first end-to-end test in an internal bot project (2026-06-26).
 
 **Placeholders:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}` — substituted at render time.
 
@@ -171,5 +171,8 @@ Verdict mapping:
 - Squash-merge to `{{default_branch}}`
 - **Optional but recommended:** after merge, file the follow-up implementation issue via
   `/create-issue --type=code` with the spec stub from the doc
-- MemPalace drawer in `palace-dominik/wing_personal/room_arbeitsweise_mit_claude`
-  (research loops go there, not `wing_code/room_changes`)
+- **(Optional) persist a loop summary** in your knowledge system. If you use
+  [MemPalace](https://github.com/MemPalace/mempalace), file a drawer at a research-loop
+  location (e.g. `<your-palace>/<your-personal-wing>/<your-process-room>`) so future
+  loops can recall what worked. Skip this step if your team uses a different knowledge
+  store (or none).

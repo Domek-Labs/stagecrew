@@ -126,16 +126,16 @@ Defaults:
    If the entry does not yet exist: create a minimal one first (`repo_path` from the pre-flight is known).
 6. **Channel reply** (if invoked from a `<channel>` inbound): "AGENTS.md created for `<slug>` (PR #N merged). The repo is ready for `/work-issue`."
 
-## Known limitation (dogfooding note)
+## Known limitation (plugin-cache freshness)
 
-When `/init-agents` first becomes available after a plugin update, it can be pointed at the `dominik` plugin repo itself to create its AGENTS.md. **But:** the plugin cache has to be fresh BEFORE this call (`claude restart`).
+When `/init-agents` first becomes available after a plugin update, the plugin cache has to be fresh BEFORE the first call (`claude restart`).
 
-So the recommended sequence for the bootstrap run is:
-1. Merge the PR (`feature/init-agents` → `main`)
+So the recommended sequence for a bootstrap run is:
+1. Merge the PR that adds/updates the plugin (`feature/init-agents` → `main`)
 2. `claude restart` (fresh plugin cache)
-3. `/init-agents --repo dscheinecker-at7media/dominik --interactive` as the bootstrap run for the plugin repo itself.
+3. `/init-agents --repo your-org/your-repo --interactive` as the bootstrap run.
 
-Without the restart in step 2, the running Claude still sees the v3.0.0 skills — so neither the new `/init-agents` nor the updated `/work-issue` (pure-reader) is visible.
+Without the restart in step 2, the running Claude still sees the previous-version skills — so neither the new `/init-agents` nor the updated `/work-issue` (pure-reader) is visible.
 
 The same applies to any other repo: every time a repo gets its AGENTS.md for the first time, a `claude restart` should happen before the next `/work-issue` run in that repo (so the pure-reader sees the fresh file). In practice, a session reload is usually enough.
 
