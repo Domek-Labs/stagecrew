@@ -39,6 +39,14 @@ The plugin supports two issue types via the `loop-type:<type>` label:
 
 Use `/create-issue --type=<code|research> "<idea>"` to pick one explicitly, or let auto-inference handle it.
 
+## Adapting to other workflows
+
+Right now this plugin is built specifically around **GitHub issues**: an issue is the unit of work, the `gh` CLI is the interface, and a loop ends in a merged pull request. That coupling is a convention, not a hard requirement.
+
+The underlying primitives — a per-issue spec standard, a per-repo `AGENTS.md`, and a small fixed set of audited stages — are tracker-agnostic. If your work lives somewhere else (Linear, Jira, a plain Markdown task file, an internal queue), you can rewrite the thin GitHub layer in the skills to read and write your own source of truth instead. The pipeline shape stays the same; only the issue/PR I/O changes.
+
+PRs that generalize this layer are welcome.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
