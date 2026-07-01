@@ -15,6 +15,7 @@ work-issue:
     - "Plugin cache reload (claude restart) after SKILL.md changes — otherwise stale version stays active"
     - "On version bump, .claude-plugin/plugin.json must stay in sync with the plugin cache path"
     - "Version bump follows version_policy (patch / minor / major) — see version_policy field"
+    - "English-only for all new writes: issue titles and bodies, PR titles and bodies, commit messages, code comments, and docs. Repo went public on 2026-07-01. Existing German content is left in place until it is re-touched; every new write is English."
   default_oos:
     - "No code generation (this repo is Markdown-only)"
     - "No migration of older skill versions without explicit user approval"
@@ -90,6 +91,18 @@ Single-plugin repo for the `loop-engineering-workflow` Claude Code plugin.
 - Commit format: conventional (`feat(skill): ...`, `fix(create-issue): ...`, `docs: ...`).
 - Branch pattern: `feature/<short>` or `fix/<short>`.
 - **No inline version numbers.** Only `.claude-plugin/plugin.json` names the current version. All other files describe what a feature does, not when it landed.
+- **English-only for new writes.** See the "Language" section below.
+
+## Language
+
+**English-only for all new writes** — issue titles and bodies, PR titles and bodies, commit messages, code comments, docs. The repo went public on 2026-07-01 (PR #16 also landed the version-policy reset alongside the flip); at that point English became the only acceptable target for new content.
+
+Practical rules:
+
+- **Writing new content:** English. Even if the requesting user speaks German. Explain the reasoning briefly if the user asks — the repo is public, so all artifacts have to read to outside contributors.
+- **Editing existing content:** if the file is already German (a handful of ADRs, some inline `.md` notes), translate the touched sections to English when you edit them. Leave the untouched sections as they are for now — a bulk German-to-English translation is out of scope for a single loop, but every diff nudges the repo further toward English-only.
+- **User conversation stays as the user prefers.** This rule is about *the artifacts that end up in the public repo* (issues, PRs, commits, docs). Chat with the requesting user stays in whatever language they wrote in.
+- **Validator responsibility:** the `/work-issue` Validator treats a German issue title or body as a STOP with a hint to `/create-issue --refine` in English, unless the requesting user explicitly opts out for a specific issue via the `## Standards Override` block.
 
 ## Loop Types
 
@@ -104,11 +117,12 @@ Roadmap for `text`, `decision`, `diagnostic` types — see repo issues with labe
 ## Hard-Gates Detail
 
 1. **No direct edits on main** — PR flow mandatory, branch protection should be enabled (if not: enable it).
-2. **No new secrets in repo** — critical because a public flip is planned later.
+2. **No new secrets in repo** — the repo is public; a leaked token would be publicly indexed within minutes.
 3. **SKILL.md YAML frontmatter** — the loader is tolerant but strict-YAML compliance is mandatory (otherwise CI breaks against future validator tooling).
 4. **Plugin cache reload after skill changes** — `claude restart` is mandatory in every PR body.
 5. **plugin.json version bump in sync** — the plugin cache path uses the version, so an asynchronous bump leaves a stale cache.
 6. **Version bump follows version_policy** — see the `version_policy` field in the YAML frontmatter. No other file may name an explicit version number; when in doubt, ship as `patch`.
+7. **English-only for new writes** — see the `Language` section above. The Validator STOPs on a German issue title or body unless the issue's `## Standards Override` block explicitly waives this gate.
 
 ## Plugin-Loader Gotchas
 
