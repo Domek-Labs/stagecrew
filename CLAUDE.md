@@ -52,6 +52,13 @@ Battle-tested in this repo: code loops (#6 docs/translation, #7 chore/audit).
 Research loops: infrastructure activated in #10, first end-to-end battle-test
 ready as a follow-up issue (pick a research topic and call `/work-issue --type=research`).
 
+## Recommended companion MCPs (optional)
+
+Two MIT-licensed external MCPs make the loop richer. Neither is required — the skills call them opportunistically and fall back to plain `grep` / `ls` / no-op when the tool namespace is missing.
+
+- **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — local code-graph MCP (tree-sitter based). Used by `/init-agents` for architecture / conventions defaults, `/create-issue` for files-to-touch suggestions, and `/work-issue` in the Validator / Implementer / Critic stages for code-graph-backed evidence.
+- **[MemPalace](https://github.com/MemPalace/mempalace)** — verbatim knowledge-store MCP. The `/work-issue` Closer stage persists a loop summary (repo, PR, commit, Tester findings) as a "drawer" so future sessions can search prior decisions.
+
 ## Roadmap
 
 See Epic #1 in this repo for the rolling roadmap.

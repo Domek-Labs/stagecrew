@@ -39,6 +39,16 @@ The plugin supports two issue types via the `loop-type:<type>` label:
 
 Use `/create-issue --type=<code|research> "<idea>"` to pick one explicitly, or let auto-inference handle it.
 
+## Recommended companion MCPs (optional)
+
+The plugin runs standalone — none of the skills require an external MCP server. But two MIT-licensed MCPs make the loop noticeably richer if they're wired into your Claude Code session. Both are opportunistically called: when the tool namespace is missing, the skills fall back to plain `grep` / `ls` / no-op.
+
+- **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — local code-graph MCP. Parses your repo with tree-sitter, exposes `list_projects`, `index_repository`, `index_status`, `search_code`, `get_architecture`, `detect_changes`, and more. `/init-agents` uses it to suggest architecture / conventions defaults, `/create-issue` uses it for files-to-touch suggestions plus hotspot warnings, and `/work-issue` calls it from the Validator, Implementer, and Critic stages for code-graph-backed evidence.
+
+- **[MemPalace](https://github.com/MemPalace/mempalace)** — verbatim knowledge-store MCP. The `/work-issue` Closer stage can persist a loop summary (repo, PR, commit, Tester findings) as a "drawer" so future sessions can search for prior decisions. The Closer's persistence step is a no-op when MemPalace is not installed.
+
+Neither is required. Install what you like, skip what you do not.
+
 ## Adapting to other workflows
 
 Right now this plugin is built specifically around **GitHub issues**: an issue is the unit of work, the `gh` CLI is the interface, and a loop ends in a merged pull request. That coupling is a convention, not a hard requirement.
