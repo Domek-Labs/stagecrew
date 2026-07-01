@@ -1,18 +1,17 @@
 ---
 name: work-issue
-description: "Drive a GitHub issue through a 5-stage spec→build loop (Validator → Implementer → Tester → Critic → Closer). Multi-repo. Pure-reader v3.1.0 — all standards values come from AGENTS.md at the repo root (no skill defaults). v3.2.0 multi-type system: reads the loop-type:<type> label and dispatches to a type-specific subagent brief (code|research). Mandatory pre-flight checks AGENTS.md existence, YAML parseability and completeness. Codebase-memory mandatory pre-flight. Auto-PR + merge on APPROVE. Triggers: /work-issue, work issue, loop engineering, drive issue, spec build loop."
+description: "Drive a GitHub issue through a 5-stage spec→build loop (Validator → Implementer → Tester → Critic → Closer). Multi-repo. Pure-reader — all standards values come from AGENTS.md at the repo root (no skill defaults). Multi-type system: reads the loop-type:<type> label and dispatches to a type-specific subagent brief (code|research). Mandatory pre-flight checks AGENTS.md existence, YAML parseability and completeness. Codebase-memory mandatory pre-flight. Auto-PR + merge on APPROVE. Triggers: /work-issue, work issue, loop engineering, drive issue, spec build loop."
 ---
 
 # /work-issue — Spec→build loop for GitHub issues
 
 **Type:** loop engineering / autonomous issue implementation
-**Version:** v3.2.0 (multi-type system: code + research)
 
 ## Purpose
 
 Drive a fully-specified GitHub issue (Idea + Spec + AC + Files-To-Touch + Test-Plan + OoS) to merge through 5 dedicated subagents. Each stage = one agent that posts a `[stage:<name>]` comment on the issue as an audit log, then the next stage starts.
 
-Since **v3.1.0** this skill is a **pure-reader**: no more hardcoded defaults. All standards values (branch_pattern, syntax_check, smoke_test, ...) come from **AGENTS.md at the repo root**. Missing AGENTS.md → STOP with a pointer to `/init-agents`.
+This skill is a **pure-reader**: no hardcoded defaults. All standards values (branch_pattern, syntax_check, smoke_test, ...) come from **AGENTS.md at the repo root**. Missing AGENTS.md → STOP with a pointer to `/init-agents`.
 
 Pattern from internal loop-engineering experiments (2026-06). First end-to-end test ran in 33 minutes with 2 iterations and all 5 acceptance criteria green.
 
@@ -32,16 +31,16 @@ Pattern from internal loop-engineering experiments (2026-06). First end-to-end t
 4. No number → `gh issue list --repo <slug> --state open --limit 30`, user picks
 5. Issue number cannot be resolved → ask whether `/create-issue` should be called
 
-## Standards source (2-tier since v3.1.0)
+## Standards source (2-tier)
 
 | Tier | Source | What it overrides |
 |------|--------|-------------------|
 | L1   | `AGENTS.md` at the repo root (YAML frontmatter) | base values — repo-specific conventions |
 | L2   | `## Standards Override` block in the issue body | L1 — issue-specific one-shot |
 
-Load L1 → L2, merge right-wins. **L1 is mandatory** (see the pre-flight check below). The earlier skill-default L1 has been removed (v3.1.0); `/init-agents` creates AGENTS.md.
+Load L1 → L2, merge right-wins. **L1 is mandatory** (see the pre-flight check below). Skill-default L1 does not exist — `/init-agents` creates AGENTS.md.
 
-**Producer side since v3.2.0** (`/create-issue`): auto-injects AGENTS.md `ac_templates` into the AC block and detects issue types (docs/epic/secret/mcp/live-ping/live-service) with required extensions. The Validator stays strict — the producer is now opinionated. See `skills/create-issue/SKILL.md`.
+**Producer side** (`/create-issue`): auto-injects AGENTS.md `ac_templates` into the AC block and detects issue types (docs/epic/secret/mcp/live-ping/live-service) with required extensions. The Validator stays strict — the producer is opinionated. See `skills/create-issue/SKILL.md`.
 
 ## AGENTS.md format (L1)
 
@@ -118,14 +117,14 @@ Run in this order:
 
 1. **Repo-registry lookup** → `repo_path` from `~/.claude/work-issue-paths.yaml`. If missing: ask once for the path.
 2. **Codebase-memory pre-flight** (see above: list_projects → index/freshness → health check).
-3. **AGENTS.md mandatory check (NEW in v3.1.0)** — see the next section.
-4. **Loop-type resolution (NEW in v3.2.0)** — see the next section.
+3. **AGENTS.md mandatory check** — see the next section.
+4. **Loop-type resolution** — see the next section.
 5. **Determine default branch:** `gh api repos/<slug> --jq .default_branch` (cross-check against the AGENTS.md value).
 6. **Check for `dev` branch existence:** `gh api repos/<slug>/branches/dev` → 200 or 404 (info only).
 7. **Live-path drift check** (if `live_path != repo_path`): `diff -r <live_path> <repo_path>` → on drift, warn the user before stage 1.
 8. **Channel inbound detection:** on a `<channel>` tag → short reply "Loop for <slug>#<n> starting (`loop-type:<type>`), stage 1 running."
 
-### AGENTS.md mandatory check (NEW in v3.1.0)
+### AGENTS.md mandatory check
 
 Before stage 1, check in this order — every failure is a **STOP verdict** (no stage 1, no subagent start).
 
@@ -148,14 +147,14 @@ Before stage 1, check in this order — every failure is a **STOP verdict** (no 
 
 If all three checks pass: cache the frontmatter and keep the body available for stage briefings. This cache is the source for all standards values in the subagent briefings.
 
-### Loop-type resolution (NEW in v3.2.0)
+### Loop-type resolution
 
 Before stage 1, determine the issue loop type. In this order:
 
 1. **Issue label** — `gh issue view <num> --repo <slug> --json labels --jq '.labels[].name'` → look for the `loop-type:<type>` prefix.
 2. **Body frontmatter fallback** — if the issue body starts with `---\nloop-type: <type>\n---` → use that value. (Happens when an issue was filed manually without the skill.)
 3. **AGENTS.md default fallback** — `loop_types.default` from AGENTS.md (typically `code`).
-4. **Last-resort fallback** — `code` (backwards compatibility for pre-v3.2.0 issues).
+4. **Last-resort fallback** — `code` (backwards compatibility for issues filed before the multi-type system).
 
 Validation against `loop_types.enabled` from AGENTS.md:
 - If the resolved type is **not** in `enabled`: STOP verdict:
@@ -166,7 +165,7 @@ Validation against `loop_types.enabled` from AGENTS.md:
 
 On OK: write the resolved type into the state tracker (`loop_type` field). The subagent-brief loader uses this value.
 
-### Subagent-brief loader (NEW in v3.2.0)
+### Subagent-brief loader
 
 For each stage 2 (Implementer), the brief is loaded from `references/subagent-briefs/<loop_type>-implementer.md`. The briefs have placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, etc.) that are replaced at render time from the AGENTS.md cache + state tracker.
 
@@ -204,7 +203,7 @@ The type-specific check criteria are documented in the corresponding subagent-br
 }
 ```
 
-`loop_type` is mandatory since v3.2.0 — see "Loop-type resolution" above.
+`loop_type` is mandatory — see "Loop-type resolution" above.
 
 `repo_slug_safe` = `owner_repo` (slash → underscore). Update after every stage.
 
@@ -240,7 +239,7 @@ Important: **all standards values in the briefings are placeholders** (`<branch_
 - STOP → loop paused, Telegram text to the user with reasons + suggestion `/create-issue --refine <num>`.
 - GO → stage 2.
 
-### Stage 2 — Implementer (type dispatch since v3.2.0)
+### Stage 2 — Implementer (type dispatch)
 
 **Brief selection by loop type:**
 
@@ -258,7 +257,7 @@ The skill loads the matching brief file, replaces placeholders (`{{branch_patter
 
 **Parent decision:** spec gap too large → ESCALATE. Otherwise stage 3 (or skip rule).
 
-### Stage 3 — Tester (type-specific check criteria since v3.2.0)
+### Stage 3 — Tester (type-specific check criteria)
 
 **Briefing schema (`loop_type: code`):**
 > You verify the ACs from issue #N. You do not write code.
@@ -326,7 +325,7 @@ The skill loads the matching brief file, replaces placeholders (`{{branch_patter
 - REVISE → `iterations++`, stage 2 again with the Critic comment as the briefing. **Hard cap: 3 revises.**
 - ESCALATE → pause, Telegram text to the user.
 
-### Stage 5 — Closer (type routing since v3.2.0)
+### Stage 5 — Closer (type routing)
 
 **Briefing (template):**
 > 1. Create a PR with body (summary, standards used from AGENTS.md, test plan, "Closes #N", loop-engineering process block). Base: `<pr_base>`.

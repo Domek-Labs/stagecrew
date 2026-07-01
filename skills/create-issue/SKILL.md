@@ -1,12 +1,11 @@
 ---
 name: create-issue
-description: "Create a GitHub issue from a feature request or idea, with a full spec standard (Idea/Spec/AC/Files-To-Touch/Test-Plan/Out-of-Scope). Multi-repo. AGENTS.md in the repo overrides default templates. v3.3.0 multi-type system: --type=<code|research> flag plus auto-inference. Templates from references/issue-templates/<type>.md. v3.2.0 auto-injection of AGENTS.md ac_templates into the AC block plus 6-trigger issue-type detection (docs/epic/secret/mcp/live-ping/live-service). Codebase-memory auto-suggests files-to-touch and hotspots. Optional auto-handoff to /work-issue. Triggers: /create-issue, create issue, new issue, file issue, file feature, spec issue, idea as ticket."
+description: "Create a GitHub issue from a feature request or idea, with a full spec standard (Idea/Spec/AC/Files-To-Touch/Test-Plan/Out-of-Scope). Multi-repo. AGENTS.md in the repo overrides default templates. Multi-type system: --type=<code|research> flag plus auto-inference. Templates from references/issue-templates/<type>.md. Auto-injection of AGENTS.md ac_templates into the AC block plus 6-trigger issue-type detection (docs/epic/secret/mcp/live-ping/live-service). Codebase-memory auto-suggests files-to-touch and hotspots. Optional auto-handoff to /work-issue. Triggers: /create-issue, create issue, new issue, file issue, file feature, spec issue, idea as ticket."
 ---
 
 # /create-issue — Idea → specified GitHub issue
 
 **Type:** issue genesis / spec engineering
-**Version:** v3.3.0 (multi-type system: code + research)
 
 ## Purpose
 
@@ -26,11 +25,11 @@ The spec standard matches what `/work-issue`'s Validator expects as a GO criteri
 
 **Argument parsing:** same as `/work-issue` (GitHub syntax, `--repo` flag, cwd fallback).
 
-**`--type=<code|research>` flag (NEW in v3.3.0):** selects the issue template from
+**`--type=<code|research>` flag:** selects the issue template from
 `references/issue-templates/<type>.md`. If not set: auto-inference from
 user text (see the next section).
 
-## Loop-type resolution (NEW in v3.3.0)
+## Loop-type resolution
 
 In this order:
 
@@ -48,13 +47,13 @@ In this order:
 
 If code and research score the same → ask explicitly.
 
-### Supported types (v3.3.0)
+### Supported types
 
-The skill reads `AGENTS.md` `loop_types.enabled`. In v3.3.0 only `code` and `research`
+The skill reads `AGENTS.md` `loop_types.enabled`. Currently only `code` and `research`
 are implemented. On `--type=text|decision|diagnostic`:
 
 ```
-Error: loop-type '<type>' is not implemented in v3.3.0.
+Error: loop-type '<type>' is not implemented.
 Roadmap issues:
   - Text loop:       <repo>/issues?label=loop-type,roadmap,text
   - Decision loop:   <repo>/issues?label=loop-type,roadmap,decision
@@ -89,14 +88,14 @@ Same as `/work-issue`:
 2. cwd fallback via `git remote get-url origin`
 3. If unclear: ask
 
-### b) AGENTS.md pre-step (NEW in v3.1.0)
+### b) AGENTS.md pre-step
 
 **Before anything else:** AGENTS.md existence check at the repo root.
 
 - `ls <repo_path>/AGENTS.md` → exists? → proceed to (c).
 - Missing → call `/init-agents --repo <slug> --interactive`, then return to (b) — re-check.
 
-Background: since v3.1.0, `/work-issue` is a pure-reader and needs AGENTS.md. `/create-issue` builds on this — `ac_templates` and `default_oos` from AGENTS.md are suggested as defaults in the spec dialog.
+Background: `/work-issue` is a pure-reader and needs AGENTS.md. `/create-issue` builds on this — `ac_templates` and `default_oos` from AGENTS.md are suggested as defaults in the spec dialog.
 
 ### c) codebase-memory pre-flight
 
@@ -110,7 +109,7 @@ Same block as `/work-issue`:
 
 Read at the repo root (guaranteed to exist after step b). Load the frontmatter for `ac_templates`, `default_oos`, `loop_types` — these are suggested as defaults in the spec dialog.
 
-### d2) Loop-type resolution (NEW in v3.3.0)
+### d2) Loop-type resolution
 
 Before the spec dialog, resolve the loop type (see the "Loop-type resolution" section above):
 
@@ -131,7 +130,7 @@ The user is walked through the fields below. On every question the skill is welc
    - **The skill actively suggests:** extract keywords from the idea (e.g., "scheduler", "voice-diff", "ollama") → `search_code` with the keywords → functions + files. `get_architecture` for cluster context. Suggestion: "These files will likely be touched: <list>. Correct?"
    - Flag hotspots in the code graph as diff risks.
 3. **Acceptance criteria** as a checkbox list
-   - Since v3.2.0 the AGENTS.md `ac_templates` are **injected** (not just suggested) — see the "Auto-injection of AGENTS.md `ac_templates`" section below.
+   - The AGENTS.md `ac_templates` are **injected** (not just suggested) — see the "Auto-injection of AGENTS.md `ac_templates`" section below.
    - The user adds issue-specific ACs, which are appended after the required templates.
    - In addition, issue-type detection (6 triggers) runs before the preview — see the "Issue-type detection" section.
 4. **Test plan** — which smoke tests? (build command, service restart, manual check)
@@ -174,9 +173,9 @@ For the files-to-touch suggestion and spec enrichment:
 
 ## AGENTS.md generation (delegated to /init-agents)
 
-Up to v3.0.0, `/create-issue` had an inline auto-generation workflow for AGENTS.md. Since v3.1.0 this is centralized in `/init-agents` (single source).
+AGENTS.md generation is centralized in `/init-agents` (single source).
 
-If AGENTS.md is missing, `/create-issue` calls `/init-agents --repo <slug> --interactive` in the pre-step (step b) and returns afterward. That guarantees `/work-issue` (pure-reader since v3.1.0) can pick the issue up directly.
+If AGENTS.md is missing, `/create-issue` calls `/init-agents --repo <slug> --interactive` in the pre-step (step b) and returns afterward. That guarantees `/work-issue` (pure-reader) can pick the issue up directly.
 
 ## Repo-registry update
 
@@ -188,10 +187,10 @@ If `<repo>` is not in `~/.claude/work-issue-paths.yaml` yet:
 
 The repo is then ready for `/work-issue` immediately afterward.
 
-## Issue-body templates (multi-type since v3.3.0)
+## Issue-body templates (multi-type)
 
 Templates live externally in `references/issue-templates/<type>.md` and are loaded at
-render time. v3.3.0 supports two types:
+render time. Currently two types:
 
 | Type | Template file | When |
 |------|---------------|------|
@@ -214,21 +213,21 @@ Both templates define the required sections that `/work-issue`'s Validator check
 
 For type-specific differences see the template files.
 
-### Roadmap (v4.2.0+)
+### Roadmap
 
 `text`, `decision`, `diagnostic` templates are not implemented yet. See the
 roadmap issues in the repo (labels `loop-type` + `roadmap`).
 
 ## Standards source
 
-Same as `/work-issue` (2-tier since v3.1.0: AGENTS.md → issue override). `/create-issue` uses it primarily for:
-- `ac_templates` (since v3.2.0 **auto-injected** in the AC block — see the next section, no longer just "suggested")
+Same as `/work-issue` (2-tier: AGENTS.md → issue override). `/create-issue` uses it primarily for:
+- `ac_templates` — **auto-injected** in the AC block (see the next section, not just "suggested")
 - `default_oos` (suggested in the spec dialog)
 - `hard_gates` (inserted as required ACs when relevant)
 
 ## Auto-injection of AGENTS.md `ac_templates`
 
-Since **v3.2.0** the render logic in step (e3) acceptance criteria is opinionated: AGENTS.md `ac_templates` are **injected**, no longer just "suggested". Three modes:
+The render logic in step (e3) acceptance criteria is opinionated: AGENTS.md `ac_templates` are **injected**, no longer just "suggested". Three modes:
 
 ### Mode 1 — default (no standards override)
 
@@ -293,9 +292,9 @@ This injection becomes active in step (e3) of the workflow definition — no lon
 
 The user decides per AC item: `APPROVE` / `EDIT` / `DISMISS`. If all four items are `DISMISS`ed, a `## Standards Notes` block with the reasoning is appended to the issue.
 
-## Refine mode v3.2.0
+## Refine mode
 
-`/create-issue --refine <num>` loads an existing issue and fills in missing sections. For the case where `/work-issue` returned STOP because the spec was incomplete. Workflow (5 steps since v3.2.0):
+`/create-issue --refine <num>` loads an existing issue and fills in missing sections. For the case where `/work-issue` returned STOP because the spec was incomplete. Workflow (5 steps):
 
 1. **Load the existing body** — `gh issue view <num> --repo <slug> --json title,body,labels,milestone`
 2. **Run type detection on the existing body** — check all 6 triggers, identify which fire.

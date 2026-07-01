@@ -9,7 +9,7 @@ description: "Create AGENTS.md (per-repo coding-standards spec) for a Git repo. 
 
 ## Purpose
 
-AGENTS.md is the **single source of truth** for per-repo coding standards. Since v3.1.0, `/work-issue` is a **pure-reader** (no more hardcoded defaults): all standards values come from AGENTS.md at the repo root.
+AGENTS.md is the **single source of truth** for per-repo coding standards. `/work-issue` is a **pure-reader** (no hardcoded defaults): all standards values come from AGENTS.md at the repo root.
 
 That makes AGENTS.md **mandatory** before `/work-issue` can run against a repo. `/init-agents` creates it — interactively (the user is walked through every field) or autonomously (codebase-memory supplies sensible defaults).
 
@@ -135,7 +135,7 @@ So the recommended sequence for a bootstrap run is:
 2. `claude restart` (fresh plugin cache)
 3. `/init-agents --repo your-org/your-repo --interactive` as the bootstrap run.
 
-Without the restart in step 2, the running Claude still sees the previous-version skills — so neither the new `/init-agents` nor the updated `/work-issue` (pure-reader) is visible.
+Without the restart in step 2, the running Claude still sees the previous skill versions — so neither the new `/init-agents` nor the updated `/work-issue` (pure-reader) is visible.
 
 The same applies to any other repo: every time a repo gets its AGENTS.md for the first time, a `claude restart` should happen before the next `/work-issue` run in that repo (so the pure-reader sees the fresh file). In practice, a session reload is usually enough.
 
@@ -188,8 +188,8 @@ Full example: see `references/AGENTS.md.template`.
 
 ## What this skill does NOT do
 
-- **No migration from legacy `code/projects.yaml`** — v3.0.0 already removed that path; old data is lost.
-- **No schema versioning** (e.g., a `schema_version: 1` field). May arrive in v3.2 if a migration is needed.
+- **No migration from legacy `code/projects.yaml`** — that path has been removed; old data is lost.
+- **No schema versioning** (e.g., a `schema_version: 1` field). Planned for a future release if a migration is needed.
 - **No auto-detection of a dev-branch flow** in `--auto` mode — if a `dev` branch exists, it is **suggested** in the interactive dialog but never set autonomously as `pr_base`.
 - **No AGENTS.md for non-code repos** (e.g., docs-only repos). The skill assumes a code repo.
 - **No cross-repo standards inheritance** — every repo has its own AGENTS.md.

@@ -4,7 +4,7 @@
 
 Pure-reader plugin: all coding standards live in your repo's `AGENTS.md`, not in this plugin. You bootstrap once per repo, then any issue can flow through the loop.
 
-**Multi-type system since v4.1.0:** the same 5-stage skeleton powers both
+**Multi-type system:** the same 5-stage skeleton powers both
 code loops (software implementation) and research loops (knowledge generation
 with a test matrix). Each type has its own issue template and subagent brief — see the
 "Loop Types" section below.
@@ -31,7 +31,7 @@ That is the entire loop. Bootstrap → Genesis → Execution.
 
 If you do not know which sub-skill you need, just call `/loop` — it asks one clarifying question and routes you. Triggers on "loop", "loop engineering", "work issue", "spec build", "coding loop", "github workflow".
 
-## Loop Types (v4.1.0)
+## Loop Types
 
 | Type | When | Deliverable | Template | Implementer brief |
 |------|------|-------------|----------|-------------------|
@@ -62,4 +62,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Status
 
-Alpha. In active development. The API may shift between minor versions until v5.0.0.
+Alpha. In active development. Under `0.x` the API may shift between minor bumps — see `AGENTS.md` `version_policy` for the exact patch / minor / major definition. The current version lives only in `.claude-plugin/plugin.json`.

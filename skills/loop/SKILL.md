@@ -97,8 +97,10 @@ Three sub-skills, one umbrella: **loop engineering** — the loop that drives a 
 
 ## Roadmap
 
-- **v4.1.0 (multi-type loops, issue #22):** same 5-stage skeleton for non-code loops — text loop, decision loop, diagnostic loop.
-- **v4.2.0 (public flip, issue #23):** LICENSE, secret sweep, repo-visibility public.
+- **Multi-type loops (issue #22):** same 5-stage skeleton for non-code loops — text loop, decision loop, diagnostic loop.
+- **Public flip (issue #23):** LICENSE, secret sweep, repo-visibility public.
+
+Version numbers for roadmap items are intentionally not tracked here — see `AGENTS.md` `version_policy` for the bump policy. The current version lives only in `.claude-plugin/plugin.json`.
 
 ## See also
 

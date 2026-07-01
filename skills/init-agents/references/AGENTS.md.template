@@ -29,7 +29,7 @@ work-issue:
     - "Documentation in README/CLAUDE.md aktualisiert"
     - "No new secrets in repo (Secret-Check passed)"
 
-# Multi-Type-Loop-System (seit Plugin v4.1.0)
+# Multi-Type-Loop-System
 # Enabled-Types: 'code' (Default, Software-Implementation) und 'research'
 # (Erkenntnis-Generierung mit Test-Matrix). Pro Type kann ein Overrides-Block
 # Standards-Werte ueberschreiben (z.B. ac_templates: [] fuer docs-only Research).
@@ -40,7 +40,7 @@ loop_types:
     research:
       ac_templates: []                     # docs-only -> Issue liefert Ersatz-AC
       smoke_test: "wc -w docs/research/*.md"   # Doc-Quality statt Build-GREEN
-    # Roadmap (v4.2.0+) — auskommentiert bis implementiert:
+    # Roadmap — auskommentiert bis implementiert (keine Version-Tags):
     # text:
     #   ac_templates:
     #     - "markdownlint passt"

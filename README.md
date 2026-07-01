@@ -10,7 +10,7 @@ Writing code with AI agents works best when every issue carries its own spec, ev
 
 ## Status
 
-Alpha — in active development. Expect minor API changes until v5.0.0.
+Alpha — in active development. The current version lives in `.claude-plugin/plugin.json`; the per-bump policy (patch / minor / major) is documented in `AGENTS.md` under `version_policy`. Under `0.x` a minor bump may introduce breaking changes.
 
 ## Install
 
