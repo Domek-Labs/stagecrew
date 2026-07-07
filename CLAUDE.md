@@ -52,6 +52,14 @@ Battle-tested in this repo: code loops (#6 docs/translation, #7 chore/audit).
 Research loops: infrastructure activated in #10, first end-to-end battle-test
 ready as a follow-up issue (pick a research topic and call `/work-issue --type=research`).
 
+## Optional features
+
+### Component Registry (`components:` block in AGENTS.md)
+
+An **opt-in** AGENTS.md YAML frontmatter block that declares a repo's canonical component set (frontend components, backend value objects, aggregates). When set, the loop enforces reuse: the Validator gates in-scope issues against the registry, the Implementer refuses to inline duplicates, and the Critic runs a dupe-detection pass over the declared code globs. `usage_policy` picks the enforcement level — `prefer_existing` warns, `strict` STOPs and requires an ADR link.
+
+Absent block → zero behavior change. Full schema and enforcement details in `AGENTS.md` under "Component Registry", template in `skills/init-agents/references/components-registry-template.md`, design rationale in `docs/adr/0001-components-registry.md`.
+
 ## Recommended companion MCPs (optional)
 
 Two MIT-licensed external MCPs make the loop richer. Neither is required — the skills call them opportunistically and fall back to plain `grep` / `ls` / no-op when the tool namespace is missing.

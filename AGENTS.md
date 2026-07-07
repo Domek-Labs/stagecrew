@@ -129,3 +129,58 @@ Roadmap for `text`, `decision`, `diagnostic` types — see repo issues with labe
 - Cache path: `~/.claude/plugins/cache/loop-engineering-workflow/<version>/skills/<name>/SKILL.md`
 - Marketplace source: can be a local path (development) or a GitHub URL (public production)
 - On a `plugin.json` version bump, the old cache path stays and a new path is created — `claude restart` is required.
+
+## Component Registry (optional AGENTS.md field)
+
+Component drift across sessions and users is a real cost: the same UI concept (a data table, a navigation menu) gets re-implemented slightly differently every time an issue lands. When a decision changes ("from now on: tabs, not submenus"), a 20-file refactor becomes the cheapest exit — because there was never one canonical component to change. The same trap exists on the backend for domain entities, value objects and query handlers.
+
+The loop can prevent this if a repo declares an **optional `components:` block** in the AGENTS.md YAML frontmatter. Absent block = zero behavior change. Opt-in per Pure-Reader principle.
+
+### Schema
+
+```yaml
+components:
+  registry_path: "docs/components.md"           # required if block present — the Markdown catalog
+  code_globs:                                   # required — points at the code source-of-truth
+    - "src/components/**/*.tsx"
+    - "src/domain/**/*.ts"
+  usage_policy: "prefer_existing"               # prefer_existing (soft, warns) | strict (hard, ADR required for new)
+  scope: "both"                                 # frontend | backend | both (default both)
+```
+
+### Two layers
+
+1. **Code layer** — the real reusable components in the codebase (single source of truth for API / props / types / backend contract). Referenced via `code_globs`.
+2. **Markdown catalog layer** — a per-component MD (rooted at `registry_path`) describing when to use, when not to, where the code lives, the public API summary, the backend contract shape (if applicable), and anti-patterns.
+
+### Registry MD structure (per component)
+
+- Name
+- Purpose (when to use, when not to)
+- Code path (link into `code_globs`, the source of truth)
+- Public API summary
+- Backend contract shape (if applicable — e.g. table filter/sort response shape)
+- Anti-patterns
+
+A skeleton template with a worked frontend example and a worked backend example ships in `skills/init-agents/references/components-registry-template.md`.
+
+### `usage_policy` modes
+
+- **`prefer_existing`** (default when block present, soft): the Validator warns if an in-scope issue does not reference an existing registry component; the Critic still runs dupe detection. Non-blocking.
+- **`strict`** (hard): the Validator STOPs an in-scope issue unless it references an existing registry component OR links an ADR path in the `## Standards Override` block that justifies adding a new one. Implementer + Critic keep the same hard-gate.
+
+### `scope` values
+
+- **`frontend`** — enforcement applies only to `code_globs` matching frontend patterns.
+- **`backend`** — enforcement applies only to backend patterns (domain entities, value objects, aggregates).
+- **`both`** (default) — enforcement applies to any file in `code_globs`.
+
+### Loop integration
+
+- **Validator (stage 1):** if the issue's `Spec` or `Files to Touch` implies work in the `code_globs` scope, gate as above (warn in `prefer_existing`, STOP + ADR requirement in `strict`).
+- **Implementer brief:** hard-gate — "If a registry component fits the case, use it. Do not inline a duplicate. If nothing fits, stop and propose an ADR before implementing."
+- **Critic (stage 4):** dupe-detection pass — `search_code` / grep across `code_globs` for repeated patterns; if two implementations cover the same concept, log as a REVISE item.
+
+### For this repo
+
+This repo is **Markdown-only** — no frontend framework, no backend domain layer, no `code_globs` scope. The `components:` block is therefore not set here. This section documents the schema so `/init-agents`, `/create-issue` and `/work-issue` can honor it in downstream target repos.

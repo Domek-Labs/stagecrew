@@ -29,6 +29,20 @@ work-issue:
     - "Documentation in README/CLAUDE.md aktualisiert"
     - "No new secrets in repo (Secret-Check passed)"
 
+# Optional: Component Registry (opt-in, absent = zero behavior change)
+# Uncomment + fill only if the repo has real reusable-component patterns
+# (frontend framework and/or backend domain layer). When set, the loop
+# enforces registry reuse: Validator gates in-scope issues, Implementer
+# refuses inline duplicates, Critic runs dupe detection.
+#
+# components:
+#   registry_path: "docs/components.md"          # required if block present
+#   code_globs:                                  # required — the code source-of-truth
+#     - "src/components/**/*.tsx"
+#     - "src/domain/**/*.ts"
+#   usage_policy: "prefer_existing"              # prefer_existing (warn) | strict (STOP + ADR required)
+#   scope: "both"                                # frontend | backend | both (default both)
+
 # Multi-Type-Loop-System
 # Enabled-Types: 'code' (Default, Software-Implementation) und 'research'
 # (Erkenntnis-Generierung mit Test-Matrix). Pro Type kann ein Overrides-Block

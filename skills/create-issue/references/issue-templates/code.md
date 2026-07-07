@@ -77,10 +77,11 @@ Technical spec, architecture, affected components. Sub-headers (`###`) allowed.
 
 ### `## Acceptance Criteria`
 
-Three sub-blocks:
+Three (or four) sub-blocks:
 1. **`### from AGENTS.md ac_templates (required)`** — auto-injected from AGENTS.md (mode 1) or override list (mode 3) or empty (mode 2). See `skills/create-issue/SKILL.md` section "Auto-injection".
 2. **`### Hard-Gates`** — `hard_gates` from AGENTS.md (only if not disabled by an issue standards override).
-3. **`### Issue-specific`** — user ACs from the spec dialog plus type-detection trigger ACs.
+3. **`### Component Reuse Check`** *(optional)* — auto-injected when AGENTS.md has a `components:` block AND the issue lands in registry scope. See `skills/create-issue/SKILL.md` section "Component Reuse Check". The Validator expects the issue to either name an existing registry component OR link an ADR path in the `## Standards Override` block (STOP under `usage_policy: strict`, warn under `prefer_existing`).
+4. **`### Issue-specific`** — user ACs from the spec dialog plus type-detection trigger ACs.
 
 Every checkbox: `- [ ] <concrete, testable>`.
 

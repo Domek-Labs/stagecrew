@@ -258,6 +258,42 @@ The override list **completely replaces** the AGENTS.md templates and is rendere
 
 This injection becomes active in step (e3) of the workflow definition — no longer "suggest", but **inject**. During the spec dialog the user can rephrase required items via `EDIT` or remove them via `DISMISS` (with reasoning in the `## Standards Notes` block), but they are present by default.
 
+## Component Reuse Check (opt-in via AGENTS.md `components:`)
+
+If AGENTS.md carries a `components:` block AND the issue idea lands in the registry's scope, an additional **Component Reuse Check** AC section is auto-injected into the AC block.
+
+### Scope trigger
+
+The check fires when both are true:
+
+1. **AGENTS.md `components:` block is present** (opt-in).
+2. **Issue signals registry scope** — any of:
+   - Idea or spec text contains a component keyword: `table`, `datatable`, `form`, `modal`, `menu`, `navigation`, `nav`, `entity`, `value object`, `aggregate`, `domain`.
+   - Files-to-touch matches any pattern in `components.code_globs`.
+   - The `components.scope` value narrows this further: `scope: frontend` only fires on frontend keywords / globs, `scope: backend` only on backend keywords / globs, `scope: both` fires on either.
+
+If neither condition is met, no reuse-check block is injected — zero behavior change.
+
+### Injected AC section
+
+Rendered as an additional sub-block inside `## Acceptance Criteria`, right after `### Hard-Gates` and before `### Issue-specific`:
+
+```markdown
+### Component Reuse Check (AGENTS.md `components:`)
+- [ ] Existing registry component reused (name it) OR new component approved via an ADR (link the ADR path in `## Standards Override`)
+- [ ] If new: ADR at `docs/adr/<n>-<slug>.md` covers rationale, alternatives, and registry entry stub
+- [ ] Backend contract shape (if applicable) matches the registry's declared shape or is versioned via an ADR
+```
+
+### Enforcement level
+
+The user cannot silently `DISMISS` the block — the enforcement level is set at the repo level via `usage_policy`:
+
+- **`prefer_existing`** — Validator will warn but not STOP if the reuse check is not answered. Critic still runs dupe detection.
+- **`strict`** — Validator STOPs the issue unless the first checkbox names an existing registry component or links an ADR path in the issue's `## Standards Override` block.
+
+The check is intentionally added at issue-creation time so the Implementer never even starts an inline-duplication path.
+
 ## Issue-type detection
 
 6 triggers, regex/keyword-based. The heuristic runs BEFORE the render step (e6 issue preview). Triggers can stack — an issue can fire multiple triggers (e.g., a new MCP skill with `ANTHROPIC_API_KEY` → #3 + #4 active).

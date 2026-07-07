@@ -145,7 +145,9 @@ Before stage 1, check in this order — every failure is a **STOP verdict** (no 
 
    Note: empty lists (`[]`) and empty strings (`""`) count as set — `deploy_command: ""` is allowed, `deploy_command` missing is STOP.
 
-If all three checks pass: cache the frontmatter and keep the body available for stage briefings. This cache is the source for all standards values in the subagent briefings.
+4. **Optional `components:` block** — if present at the top level of the frontmatter, cache it too. Fields when present: `registry_path` (string, required), `code_globs` (list of glob strings, required), `usage_policy` (`prefer_existing` | `strict`, default `prefer_existing`), `scope` (`frontend` | `backend` | `both`, default `both`). Absence is fine — the loop then skips all registry gates cleanly (zero behavior change). Presence with missing required fields → STOP with a hint to `/init-agents --refine`.
+
+If all three checks pass (plus the optional-field parse): cache the frontmatter and keep the body available for stage briefings. This cache is the source for all standards values in the subagent briefings.
 
 ### Loop-type resolution
 
@@ -194,7 +196,7 @@ The type-specific check criteria are documented in the corresponding subagent-br
   "pr_base": "main",
   "loop_type": "code",
   "agents_md_loaded": true,
-  "standards": { "branch_pattern": "...", "syntax_check": "...", ... },
+  "standards": { "branch_pattern": "...", "syntax_check": "...", "components": { "registry_path": "...", "code_globs": [...], "usage_policy": "...", "scope": "..." } | null, ... },
   "started_at": "ISO",
   "iterations": 0,
   "stage": "validator",
@@ -232,6 +234,10 @@ Important: **all standards values in the briefings are placeholders** (`<branch_
 >    - [ ] Test plan present
 >    - [ ] Out-of-scope named (at minimum `default_oos` from AGENTS.md plus issue-specific)
 >    - [ ] `hard_gates` from AGENTS.md addressed
+>    - [ ] **Component-Registry gate (only if AGENTS.md `components:` is set AND the issue's Spec or Files-to-Touch overlaps `code_globs` — optionally filtered by `scope`):** the issue names an existing registry component (from `registry_path`) OR links an ADR path in the `## Standards Override` block that justifies adding a new one.
+>      - Under `usage_policy: strict` — missing → STOP + "Add an ADR at `docs/adr/<n>-<slug>.md` and link it in `## Standards Override`, or reference the existing registry component."
+>      - Under `usage_policy: prefer_existing` — missing → WARN (not STOP); post the warning in the Validator comment; the loop continues.
+>      - Absent `components:` block OR issue outside `code_globs` scope → gate skipped silently.
 > 3. On STOP: concrete spec-improvement suggestions.
 > 4. Output: comment `## [stage:validator] <GO|STOP>` on the issue + parent report (max 100 words).
 
@@ -310,6 +316,7 @@ The skill loads the matching brief file, replaces placeholders (`{{branch_patter
 > 5. Out-of-scope check (`<default_oos>` + issue OoS).
 > 6. `hard_gates` check (see AGENTS.md).
 > 7. Code quality (smoke): naming, error handling, cleanup, security.
+> 8. **Component-Registry dupe-detection (only if AGENTS.md `components:` is set):** `search_code` / grep across `<code_globs>` for patterns similar to what this diff introduces (e.g. the diff added a new table-like component — grep the frontend globs for other table-like components; the diff added a monetary VO — grep the backend globs for other monetary handling). If two implementations cover the same concept: raise a REVISE item with both code paths, quoting a snippet from each, and propose either (a) consolidate into the existing registry component or (b) file an ADR that justifies the parallel implementation. This step runs regardless of `usage_policy` — under `prefer_existing` the Critic can still catch a dupe that slipped past the Validator warning.
 >
 > Verdict:
 > - **APPROVE** — all ACs OK, no blocking findings, OoS + hard_gates respected.

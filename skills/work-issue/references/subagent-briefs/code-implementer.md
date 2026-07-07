@@ -4,7 +4,7 @@
 
 **Loaded by:** `skills/work-issue/SKILL.md` for the subagent-brief selection.
 
-**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}` — substituted at render time from the AGENTS.md cache + state tracker.
+**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}`, `{{components}}` — substituted at render time from the AGENTS.md cache + state tracker. `{{components}}` is `null` when the optional `components:` block is absent from AGENTS.md.
 
 ---
 
@@ -85,6 +85,7 @@
 > - **NO** PR create (that is the Closer stage)
 > - **NO** hard-gates violation (see `{{hard_gates}}`)
 > - **NO** edits outside files-to-touch without reasoning in the comment
+> - **NO** inline duplication of a registry component (only if `{{components}}` is set): if AGENTS.md carries a `components:` block AND your diff touches `code_globs` scope, you MUST use the referenced registry component. If nothing in the registry fits your use case, **STOP** — do not inline a new implementation. Report to the parent with a proposed ADR path (`docs/adr/<n>-<slug>.md`) covering purpose, alternatives, and a registry entry stub; the parent decides with the user before you continue.
 >
 > ### Parent output
 >

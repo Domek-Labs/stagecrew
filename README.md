@@ -30,6 +30,10 @@ After install, restart Claude so the plugin cache picks up the new skills.
 
 See `CLAUDE.md` for the quickstart.
 
+## Optional component registry
+
+Repos with real component patterns (a frontend framework, a backend domain layer, or both) can opt into a canonical component registry via a `components:` block in AGENTS.md. When set, the loop enforces reuse across sessions: Validator gates in-scope issues, Implementer refuses inline duplicates, Critic scans for dupes. `usage_policy` picks the enforcement level (`prefer_existing` warns, `strict` STOPs and requires an ADR link). Absent block = zero behavior change. See `AGENTS.md` under "Component Registry" and `docs/adr/0001-components-registry.md` for the design.
+
 ## Loop types
 
 The plugin supports two issue types via the `loop-type:<type>` label:

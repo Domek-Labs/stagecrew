@@ -1,7 +1,7 @@
 {
   "name": "loop-engineering-workflow",
-  "version": "0.4.0",
-  "description": "Loop-engineering workflow primitives — turn a GitHub issue into a merged PR (or research findings) with a 5-stage agent pipeline. Pure-reader: standards live in your repo's AGENTS.md, not in this plugin. Multi-type-system: code-loops + research-loops, dispatched per issue-label.",
+  "version": "0.5.0",
+  "description": "Loop-engineering workflow primitives — turn a GitHub issue into a merged PR (or research findings) with a 5-stage agent pipeline. Pure-reader: standards live in your repo's AGENTS.md, not in this plugin. Multi-type-system: code-loops + research-loops, dispatched per issue-label. Optional component registry as an opt-in AGENTS.md field.",
   "author": {
     "name": "Dominik Scheinecker",
     "email": "269312923+scheineckerdominik-rgb@users.noreply.github.com"

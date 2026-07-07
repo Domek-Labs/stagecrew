@@ -63,6 +63,26 @@ The user is walked through all 11 v3 frontmatter fields. For each field, show a 
 | `default_oos` | list, empty by default — the user adds repo-specific entries |
 | `ac_templates` | list, defaults: "Code passes <syntax_check>", "Documentation in README/CLAUDE.md updated", "No new secrets in repo (secret check passed)" |
 
+### Optional field: `components:` (component-registry, opt-in)
+
+Between the 11 required frontmatter fields and the 4 body sections, run a **component-pattern probe**. Purpose: propose an opt-in `components:` block only when the repo shows real reusable-component patterns; skip cleanly otherwise.
+
+**Detection signals (via codebase-memory + file lookup):**
+
+- **Frontend framework presence** — any `.tsx`, `.jsx`, `.vue`, or `.svelte` file in the repo (`get_architecture` + `search_code` for `*.tsx`/`*.jsx`/`*.vue`/`*.svelte`).
+- **Backend domain layer** — any path under `src/domain/**`, `src/entities/**`, or `src/aggregates/**` (`get_architecture` cluster names + a directory-existence probe).
+
+**Dialog behavior:**
+
+- **No signal fires** — skip the `components:` block silently. AGENTS.md ships without it. Zero behavior change downstream.
+- **Frontend signal fires** — propose a `components:` block with `scope: frontend`, `registry_path: "docs/components.md"`, `code_globs` seeded with the detected framework glob (e.g. `["src/components/**/*.tsx"]`), and `usage_policy: prefer_existing`.
+- **Backend signal fires** — propose with `scope: backend`, `code_globs` seeded with the detected domain path (e.g. `["src/domain/**/*.ts"]`).
+- **Both fire** — propose with `scope: both` and both globs.
+
+In every proposed case: also offer to copy `references/components-registry-template.md` to the resolved `registry_path` as a starting skeleton (worked frontend + backend example). User: APPROVE / EDIT / SKIP. `SKIP` = block omitted, no registry file written.
+
+Rationale + full schema: see `AGENTS.md` in this plugin repo under "Component Registry".
+
 ### 4 body sections
 
 For each section, show 1-3 suggestions from codebase-memory or cluster analysis. The user accepts or writes their own.
