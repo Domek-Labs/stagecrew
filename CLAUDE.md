@@ -78,3 +78,13 @@ MIT — see [LICENSE](LICENSE).
 ## Status
 
 Alpha. In active development. Under `0.x` the API may shift between minor bumps — see `AGENTS.md` `version_policy` for the exact patch / minor / major definition. The current version lives only in `.claude-plugin/plugin.json`.
+
+## Optional feature: Visual Reviewer Gate (`visual:` block in AGENTS.md)
+
+An **opt-in** AGENTS.md YAML frontmatter block that adds a sixth crew role — a **Visual Reviewer** — to the loop. When set, `/work-issue` runs a stage (3.5, between Tester and Critic) that serves the built frontend and inspects it with Playwright: for each declared route × viewport (mobile first) it navigates, screenshots, snapshots the a11y tree, and reads the console, then posts `## [stage:visual] PASS|FAIL` with the screenshots attached. A FAIL routes back to the Implementer under the shared 3-revise cap.
+
+It is a **gate, not a loop-type**: frontend work still ships a code diff and keeps the `code` pipeline; the visual review layers on top, on the same axis as `components:`. Fires only when the repo has a `visual:` block AND the issue is frontend-scoped. Absent block → zero behavior change. Schema and enforcement in `AGENTS.md` under "Visual Reviewer Gate"; rationale in `docs/adr/0002-visual-gate.md`.
+
+### Companion MCP: Playwright (optional)
+
+The Visual Reviewer needs the **Playwright** MCP (`mcp__playwright__*`) to drive the browser. Like codebase-memory and MemPalace it is opportunistic: when the namespace is absent the stage is skipped with a note — never a hard fail.

@@ -43,6 +43,24 @@ work-issue:
 #   usage_policy: "prefer_existing"              # prefer_existing (warn) | strict (STOP + ADR required)
 #   scope: "both"                                # frontend | backend | both (default both)
 
+# Optional: Visual Reviewer Gate (opt-in, absent = zero behavior change)
+# Uncomment + fill only if the repo has a frontend. When set, /work-issue runs
+# a Visual Reviewer stage (3.5, between Tester and Critic) for frontend-scoped
+# issues: it serves the built frontend and inspects it with Playwright (per
+# route x viewport, mobile-first), then posts [stage:visual] PASS|FAIL with
+# screenshots. A gate, not a loop-type. Requires the Playwright MCP; absent -> skipped.
+#
+# visual:
+#   serve_command: "npm run preview"           # required if block present — serve the built frontend
+#   base_url: "http://localhost:4173"          # required — where the served app answers
+#   viewports:                                 # optional; default mobile-first
+#     - { w: 390,  h: 844,  label: mobile }
+#     - { w: 1280, h: 800,  label: desktop }
+#   routes: ["/"]                              # optional default routes; issues can override/extend
+#   console_error_policy: "fail"               # fail | warn (default fail)
+#   screenshot_dir: ".stagecrew/visual"        # optional
+#   scope: "frontend"                          # visual review only applies to frontend work
+
 # Multi-Type-Loop-System
 # Enabled-Types: 'code' (Default, Software-Implementation) und 'research'
 # (Erkenntnis-Generierung mit Test-Matrix). Pro Type kann ein Overrides-Block

@@ -147,6 +147,8 @@ Before stage 1, check in this order — every failure is a **STOP verdict** (no 
 
 4. **Optional `components:` block** — if present at the top level of the frontmatter, cache it too. Fields when present: `registry_path` (string, required), `code_globs` (list of glob strings, required), `usage_policy` (`prefer_existing` | `strict`, default `prefer_existing`), `scope` (`frontend` | `backend` | `both`, default `both`). Absence is fine — the loop then skips all registry gates cleanly (zero behavior change). Presence with missing required fields → STOP with a hint to `/init-agents --refine`.
 
+5. **Optional `visual:` block** — if present at the top level of the frontmatter, cache it too. Fields when present: `serve_command` (string, required), `base_url` (string, required), `viewports` (list, default `[{w:390,h:844,label:mobile},{w:1280,h:800,label:desktop}]`), `routes` (list, default `["/"]`), `console_error_policy` (`fail` | `warn`, default `fail`), `screenshot_dir` (string, optional), `scope` (`frontend`, default `frontend`). Absence is fine — the Visual Reviewer stage (3.5) is then skipped cleanly (zero behavior change). Presence with a missing required field → STOP with a hint to `/init-agents --refine`.
+
 If all three checks pass (plus the optional-field parse): cache the frontmatter and keep the body available for stage briefings. This cache is the source for all standards values in the subagent briefings.
 
 ### Loop-type resolution
@@ -182,6 +184,8 @@ Tester / Critic / Closer stages stay **structurally identical** but check type-s
 
 The type-specific check criteria are documented in the corresponding subagent-brief files (sections "Tester check criteria" and "Critic check criteria").
 
+The opt-in **Visual Reviewer** stage (3.5) uses a stage-specific brief, `references/subagent-briefs/visual-reviewer.md` — not an implementer brief. It is loaded only when the `visual:` gate fires (see "Stage 3.5 — Visual Reviewer" below).
+
 ## State tracker
 
 `/tmp/loop-<repo_slug_safe>-<issue>.json`:
@@ -196,7 +200,8 @@ The type-specific check criteria are documented in the corresponding subagent-br
   "pr_base": "main",
   "loop_type": "code",
   "agents_md_loaded": true,
-  "standards": { "branch_pattern": "...", "syntax_check": "...", "components": { "registry_path": "...", "code_globs": [...], "usage_policy": "...", "scope": "..." } | null, ... },
+  "standards": { "branch_pattern": "...", "syntax_check": "...", "components": { "registry_path": "...", "code_globs": [...], "usage_policy": "...", "scope": "..." } | null, "visual": { "serve_command": "...", "base_url": "...", "viewports": [...], "routes": [...], "console_error_policy": "...", "scope": "..." } | null, ... },
+  "visual_gate": "pending | pass | fail | skipped",
   "started_at": "ISO",
   "iterations": 0,
   "stage": "validator",
@@ -207,11 +212,13 @@ The type-specific check criteria are documented in the corresponding subagent-br
 
 `loop_type` is mandatory — see "Loop-type resolution" above.
 
+`standards.visual` mirrors the optional AGENTS.md `visual:` block (`null` when absent). `visual_gate` tracks the Visual Reviewer stage outcome (`pending` until stage 3.5 runs; `skipped` when `visual:` is absent, the issue is not frontend-scoped, or the Playwright MCP is missing).
+
 `repo_slug_safe` = `owner_repo` (slash → underscore). Update after every stage.
 
 ## The 5 stages
 
-Each stage = its own subagent via the agent tool (`general-purpose`). Sequential; read output, decide on the next stage.
+Each stage = its own subagent via the agent tool (`general-purpose`). Sequential; read output, decide on the next stage. A repo with an opt-in `visual:` block adds one conditional stage — **3.5 Visual Reviewer**, between Tester and Critic — for frontend-scoped issues (see "Stage 3.5 — Visual Reviewer" below); it is skipped cleanly otherwise.
 
 Important: **all standards values in the briefings are placeholders** (`<branch_pattern>`, `<syntax_check>`, ...). They are substituted at runtime from the AGENTS.md cache — no more fixed defaults in the skill.
 
@@ -302,6 +309,25 @@ The skill loads the matching brief file, replaces placeholders (`{{branch_patter
 
 **Parent decision:** FAIL → stage 4 (Critic decides revise or escalate). PASS → stage 4.
 
+### Stage 3.5 — Visual Reviewer (opt-in `visual:` gate)
+
+**Runs only when both hold** (otherwise skipped silently, `visual_gate: skipped`):
+1. AGENTS.md carries a `visual:` block (cached at pre-flight, see the optional-field parse below), and
+2. the issue is **frontend-scoped** — files-to-touch match a frontend glob (e.g. `**/*.tsx`, `**/*.vue`, `**/*.svelte`, `src/pages/**`, `src/components/**`) OR the Spec/AC contain a frontend keyword (`page`, `route`, `UI`, `component`, `layout`, `responsive`, `screen`, `viewport`).
+
+Sits **between Tester (build green) and Critic** — the browser only spins up once the build is green.
+
+**Brief:** `references/subagent-briefs/visual-reviewer.md`. Placeholders (`{{serve_command}}`, `{{base_url}}`, `{{viewports}}`, `{{routes}}`, `{{console_error_policy}}`, `{{branch}}`, `{{issue_num}}`, `{{slug}}`, `{{repo_path}}`) are substituted from the `visual:` cache + state tracker.
+
+**Flow:** serve the built frontend (`serve_command`, wait for `base_url`) → per route × viewport (mobile first): `mcp__playwright__browser_resize` → `browser_navigate` → `browser_snapshot` + `browser_take_screenshot` + `browser_console_messages` → evaluate the issue's Visual Acceptance ACs → tear down → issue comment `## [stage:visual] <PASS|FAIL>` with screenshots attached + per-AC verdict.
+
+**Dependency:** the Playwright companion MCP (`mcp__playwright__*`). Absent namespace → skip with `## [stage:visual] SKIPPED (no playwright MCP)`, `visual_gate: skipped`, continue to Critic. Never a hard fail.
+
+**Parent decision:**
+- PASS (`visual_gate: pass`) → stage 4.
+- FAIL (`visual_gate: fail`) → `iterations++`, back to stage 2 (Implementer) with the visual defect list as the briefing. **Shares the 3-revise hard cap** with Critic REVISE (a visual FAIL and a Critic REVISE count against the same cap).
+- SKIPPED → stage 4.
+
 ### Stage 4 — Critic
 
 **Briefing (template):**
@@ -353,7 +379,7 @@ The skill loads the matching brief file, replaces placeholders (`{{branch_patter
 
 ## Hard caps
 
-- Max 3 Implementer↔Critic revise rounds
+- Max 3 Implementer↔Critic revise rounds (a Visual Reviewer FAIL shares this cap)
 - Max wallclock 90 min — on overrun, pause + Telegram text
 - 3x build fails in Tester → ESCALATE
 

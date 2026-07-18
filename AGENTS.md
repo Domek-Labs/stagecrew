@@ -184,3 +184,38 @@ A skeleton template with a worked frontend example and a worked backend example 
 ### For this repo
 
 This repo is **Markdown-only** — no frontend framework, no backend domain layer, no `code_globs` scope. The `components:` block is therefore not set here. This section documents the schema so `/init-agents`, `/create-issue` and `/work-issue` can honor it in downstream target repos.
+
+## Visual Reviewer Gate (optional AGENTS.md field)
+
+Frontend issues pass the loop on a green build alone — nobody looks at the rendered UI. A build can succeed while the page overflows on mobile, pushes a primary action below the fold, or throws a console error no unit test catches. The loop can close that gap if a repo declares an **optional `visual:` block** in the AGENTS.md YAML frontmatter. Absent block = zero behavior change. Opt-in per the Pure-Reader principle.
+
+This is a **gate, not a loop-type**. Frontend work still ships a code diff, so it keeps the `code` implementer / Tester / Critic / Closer — the visual review is an extra stage layered on the same axis as `components:`, not a fork of the code pipeline. Design rationale in `docs/adr/0002-visual-gate.md`.
+
+### Schema
+
+```yaml
+visual:
+  serve_command: "npm run preview"     # required if block present — how to serve the built frontend
+  base_url: "http://localhost:4173"    # required — where the served app answers
+  viewports:                           # optional; default [390x844 mobile, 1280x800 desktop]
+    - { w: 390,  h: 844,  label: mobile }
+    - { w: 1280, h: 800,  label: desktop }
+  routes: ["/"]                        # optional default routes; the issue can override/extend
+  console_error_policy: "fail"         # fail | warn (default fail)
+  screenshot_dir: ".stagecrew/visual"  # optional — where screenshots are saved before upload
+  scope: "frontend"                    # visual review only applies to frontend work
+```
+
+### Trigger
+
+The Visual Reviewer stage fires only when **both** hold: the repo has a `visual:` block, and the issue is frontend-scoped (files-to-touch match a frontend glob OR the Spec/AC contain a frontend keyword: `page`, `route`, `UI`, `component`, `layout`, `responsive`, `screen`, `viewport`). Otherwise it is skipped silently.
+
+### Loop integration
+
+- **`/create-issue`** injects a `### Visual Acceptance (AGENTS.md visual:)` AC block for in-scope issues.
+- **`/work-issue` stage 3.5 (Visual Reviewer)** — between Tester and Critic — serves the built frontend, drives Playwright per route × viewport (mobile first), captures screenshots + a11y snapshots + console output, and posts `## [stage:visual] PASS|FAIL` with screenshots attached. FAIL routes back to the Implementer under the shared 3-revise cap.
+- Requires the Playwright companion MCP; absent namespace → the stage is skipped with a note, never a hard fail.
+
+### For this repo
+
+This repo is **Markdown-only** — no frontend, no `serve_command`. The `visual:` block is therefore not set here. This section documents the schema so `/init-agents`, `/create-issue` and `/work-issue` honor it in downstream frontend repos.

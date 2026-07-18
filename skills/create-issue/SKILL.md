@@ -363,3 +363,32 @@ This way refine mode catches exactly the spec-gap pattern that previously left t
 - `skills/create-issue/references/issue-templates/research.md` — research-loop template
 - `skills/work-issue/references/subagent-briefs/code-implementer.md` — code-implementer brief
 - `skills/work-issue/references/subagent-briefs/research-implementer.md` — researcher brief
+
+## Visual Acceptance Injection (opt-in via AGENTS.md `visual:`)
+
+If AGENTS.md carries a `visual:` block AND the issue lands in frontend scope, an additional **Visual Acceptance** AC section is auto-injected into the AC block — analogous to the Component Reuse Check.
+
+### Scope trigger
+
+The check fires when both are true:
+
+1. **AGENTS.md `visual:` block is present** (opt-in).
+2. **Issue signals frontend scope** — any of:
+   - Idea/Spec text contains a frontend keyword: `page`, `route`, `UI`, `component`, `layout`, `responsive`, `screen`, `viewport`.
+   - Files-to-touch matches a frontend glob (e.g. `**/*.tsx`, `**/*.vue`, `**/*.svelte`, `src/pages/**`, `src/components/**`).
+
+If neither condition is met, no Visual Acceptance block is injected — zero behavior change.
+
+### Injected AC section
+
+Rendered as an additional sub-block inside `## Acceptance Criteria`, after `### Component Reuse Check` (if present) and before `### Issue-specific`:
+
+```markdown
+### Visual Acceptance (AGENTS.md `visual:`)
+- [ ] Declared route(s) render without console errors at all configured viewports
+- [ ] Key element(s) named in the spec are visible above the fold at the mobile viewport (390px)
+- [ ] No horizontal overflow / layout break at mobile and desktop
+- [ ] Screenshot evidence attached in the `[stage:visual]` comment
+```
+
+The user can add issue-specific Visual Acceptance checkboxes (e.g. "the CTA is sticky on mobile"). These ACs are what the `/work-issue` Visual Reviewer stage (3.5) evaluates against the rendered screenshots.

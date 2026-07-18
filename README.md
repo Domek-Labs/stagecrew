@@ -64,3 +64,7 @@ PRs that generalize this layer are welcome.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Optional visual reviewer gate
+
+Repos with a frontend can opt into a **Visual Reviewer** stage via a `visual:` block in AGENTS.md. When set, `/work-issue` serves the built frontend and inspects it with Playwright (per route × viewport, mobile first) between the Tester and the Critic — screenshots, a11y snapshots and console checks — and posts a `[stage:visual] PASS|FAIL` verdict with the screenshots attached. A FAIL routes back to the Implementer. It is a gate, not a new loop-type: frontend work keeps the `code` pipeline and layers the visual check on top (same axis as `components:`). Needs the optional Playwright MCP; absent → the stage is skipped cleanly. Absent block = zero behavior change. See `AGENTS.md` under "Visual Reviewer Gate" and `docs/adr/0002-visual-gate.md`.

@@ -220,3 +220,24 @@ Full example: see `references/AGENTS.md.template`.
 - `skills/work-issue/SKILL.md` — pure-reader loop that reads AGENTS.md
 - `skills/create-issue/SKILL.md` — issue genesis, calls `/init-agents` as a pre-step
 - `skills/work-issue/references/repo-registry.yaml.example` — repo-registry template
+
+## Optional `visual:` block (Visual Reviewer Gate)
+
+`/init-agents` documents the optional `visual:` block in the AGENTS.md template (commented out by default). It is opt-in and applies only to repos with a frontend: absent block = zero behavior change.
+
+When the target repo shows frontend signals (a framework: `.tsx`/`.jsx`/`.vue`/`.svelte`, or a `package.json` with a dev/preview server script), `/init-agents` may propose a `visual:` block with sensible defaults:
+
+```yaml
+visual:
+  serve_command: "npm run preview"     # how to serve the built frontend
+  base_url: "http://localhost:4173"    # where the served app answers
+  viewports:                           # default: mobile-first
+    - { w: 390,  h: 844,  label: mobile }
+    - { w: 1280, h: 800,  label: desktop }
+  routes: ["/"]                        # default routes; issues can override/extend
+  console_error_policy: "fail"         # fail | warn
+  screenshot_dir: ".stagecrew/visual"
+  scope: "frontend"
+```
+
+When set, `/work-issue` runs the Visual Reviewer stage (3.5) for frontend-scoped issues (see `AGENTS.md` "Visual Reviewer Gate" and `docs/adr/0002-visual-gate.md`). Requires the Playwright companion MCP; absent → the stage is skipped cleanly.
