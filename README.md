@@ -1,8 +1,10 @@
-# loop-engineering-workflow
+# stagecrew — agentic loop workflow
 
-Loop-engineering workflow primitives — turn a GitHub issue into a merged PR (or research findings) with a 5-stage agent pipeline.
+An autonomous multi-stage agent crew that specs, builds, tests, critiques and ships a GitHub issue. Spec-driven, never one-shot.
 
 Pure-reader: standards live in your repo's `AGENTS.md`, not in this plugin.
+
+> **Breaking (rename):** this plugin was previously published as `loop-engineering-workflow`. The skill prefix is now `stagecrew:*` (e.g. `stagecrew:work-issue`). Re-add the marketplace and reinstall under the new name, then restart Claude.
 
 ## Why
 
@@ -15,8 +17,8 @@ Alpha — in active development. The current version lives in `.claude-plugin/pl
 ## Install
 
 ```
-claude plugin marketplace add https://github.com/scheineckerdominik-rgb/loop-engineering-workflow
-claude plugin install loop-engineering-workflow
+claude plugin marketplace add https://github.com/scheineckerdominik-rgb/stagecrew
+claude plugin install stagecrew
 ```
 
 After install, restart Claude so the plugin cache picks up the new skills.

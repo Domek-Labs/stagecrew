@@ -1,8 +1,10 @@
-# loop-engineering-workflow
+# stagecrew — agentic loop workflow
 
 **Turn a GitHub issue into a merged PR (or research findings) with a 5-stage agent pipeline.**
 
 Pure-reader plugin: all coding standards live in your repo's `AGENTS.md`, not in this plugin. You bootstrap once per repo, then any issue can flow through the loop.
+
+> **Breaking (rename):** formerly published as `loop-engineering-workflow`. The skill prefix changed to `stagecrew:*` (e.g. `stagecrew:work-issue`). A `claude restart` is required after updating so the renamed plugin cache path loads.
 
 **Multi-type system:** the same 5-stage skeleton powers both
 code loops (software implementation) and research loops (knowledge generation

@@ -66,13 +66,13 @@ loop_types:
     # milestones are intentionally NOT listed here (see version_policy).
 ---
 
-# Agent Instructions for loop-engineering-workflow
+# Agent Instructions for stagecrew
 
 Per-repo coding-standards spec for AI-assisted workflows. Single source of truth for this plugin repo itself (dogfooding — we use `/work-issue` to evolve `/work-issue`).
 
 ## Architecture
 
-Single-plugin repo for the `loop-engineering-workflow` Claude Code plugin.
+Single-plugin repo for the `stagecrew` Claude Code plugin (formerly `loop-engineering-workflow`).
 
 - `.claude-plugin/plugin.json` — plugin manifest (name, version)
 - `CLAUDE.md` — plugin documentation
@@ -126,7 +126,7 @@ Roadmap for `text`, `decision`, `diagnostic` types — see repo issues with labe
 
 ## Plugin-Loader Gotchas
 
-- Cache path: `~/.claude/plugins/cache/loop-engineering-workflow/<version>/skills/<name>/SKILL.md`
+- Cache path: `~/.claude/plugins/cache/stagecrew/<version>/skills/<name>/SKILL.md`
 - Marketplace source: can be a local path (development) or a GitHub URL (public production)
 - On a `plugin.json` version bump, the old cache path stays and a new path is created — `claude restart` is required.
 
