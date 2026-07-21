@@ -120,13 +120,33 @@ On the first run for a new repo: ask once for `repo_path` + `deploy_command`, pe
 Run in this order:
 
 1. **Repo-registry lookup** → `repo_path` from `~/.claude/work-issue-paths.yaml`. If missing: ask once for the path.
-2. **Codebase-memory pre-flight** (see above: list_projects → index/freshness → health check).
-3. **AGENTS.md mandatory check** — see the next section.
-4. **Loop-type resolution** — see the next section.
-5. **Determine default branch:** `gh api repos/<slug> --jq .default_branch` (cross-check against the AGENTS.md value).
-6. **Check for `dev` branch existence:** `gh api repos/<slug>/branches/dev` → 200 or 404 (info only).
-7. **Live-path drift check** (if `live_path != repo_path`): `diff -r <live_path> <repo_path>` → on drift, warn the user before stage 1.
-8. **Channel inbound detection:** on a `<channel>` tag → short reply "Loop for <slug>#<n> starting (`loop-type:<type>`), stage 1 running."
+2. **Claim protocol** — claim the resolved issue before any further work (parallel-safety). See "Claim protocol" below. A lost/already-claimed issue STOPs here — no codebase-memory, no AGENTS.md check, no stage 1.
+3. **Codebase-memory pre-flight** (see above: list_projects → index/freshness → health check).
+4. **AGENTS.md mandatory check** — see the next section.
+5. **Loop-type resolution** — see the next section.
+6. **Determine default branch:** `gh api repos/<slug> --jq .default_branch` (cross-check against the AGENTS.md value).
+7. **Check for `dev` branch existence:** `gh api repos/<slug>/branches/dev` → 200 or 404 (info only).
+8. **Live-path drift check** (if `live_path != repo_path`): `diff -r <live_path> <repo_path>` → on drift, warn the user before stage 1.
+9. **Channel inbound detection:** on a `<channel>` tag → short reply "Loop for <slug>#<n> starting (`loop-type:<type>`), stage 1 running."
+
+### Claim protocol (parallel-safety, Phase 1)
+
+`/work-issue` is **parallel-safe**: two agents/terminals may run it concurrently on the same repo. Before any work, an agent **claims** the issue so no two runs collide on the same one. Each run has an `<agent-id>` (a short stable id for this run, e.g. the terminal/session id — used in the label and claim comment). This runs right after issue-number resolution, before the codebase-memory / AGENTS.md checks and the Validator.
+
+1. **Claim** the issue (as atomically as GitHub allows):
+   - `gh issue edit <n> --add-assignee @me`
+   - Add a `claimed:<agent-id>` label: `gh issue edit <n> --add-label claimed:<agent-id>` (create the label first if it does not exist: `gh label create claimed:<agent-id> --color FBCA04 --force`).
+   - Post a claim comment: `## [claim] <agent-id> @ <ISO-8601-ts>`.
+
+2. **Read-after-write confirm** — re-fetch the issue: `gh issue view <n> --json assignees,labels,comments`. If a **competing active claim** exists (another `claimed:*` label, a different assignee, or an earlier `## [claim]` comment):
+   - **Earliest claim timestamp wins.** Compare the `## [claim]` comment timestamps.
+   - If this run is the **loser**: **release** — remove its own `claimed:<agent-id>` label and its assignee (`gh issue edit <n> --remove-label claimed:<agent-id> --remove-assignee @me`), post a `## [claim:released]` note, and **STOP** with "already claimed by `<other-agent-id>`". No stage 1.
+   - If this run is the **winner**: continue.
+
+3. **Stale-claim reclaim** — if an existing competing claim is older than a **TTL (default 60 min)** AND the issue has had **no activity since that claim** (no comments/edits after the claim comment), treat it as abandoned:
+   - Release the stale claim (remove the stale `claimed:*` label + its assignee), then claim as in step 1.
+
+On a successful claim, write `claim: { agent_id, claimed_at }` into the state tracker before continuing. The claim is **released on any failure exit** (STOP / ESCALATE / hard-cap / abort) so the issue returns to the pool — see "Release on failure" and each stage's exit note.
 
 ### AGENTS.md mandatory check
 
@@ -201,6 +221,8 @@ The opt-in **Visual Reviewer** stage (3.5) uses a stage-specific brief, `referen
   "issue": 5,
   "repo": "your-org/your-repo",
   "repo_path": "/abs/path/to/local/checkout",
+  "worktree_path": null,
+  "claim": { "agent_id": "...", "claimed_at": "ISO" },
   "branch": null,
   "default_branch": "main",
   "pr_base": "main",
@@ -219,6 +241,8 @@ The opt-in **Visual Reviewer** stage (3.5) uses a stage-specific brief, `referen
 `loop_type` is mandatory — see "Loop-type resolution" above.
 
 `standards.visual` mirrors the optional AGENTS.md `visual:` block (`null` when absent). `visual_gate` tracks the Visual Reviewer stage outcome (`pending` until stage 3.5 runs; `skipped` when `visual:` is absent, the issue is not frontend-scoped, or the Playwright MCP is missing).
+
+`claim` and `worktree_path` support parallel-safety (Phase 1): `claim` holds the winning `agent_id` + `claimed_at` (ISO) from the claim protocol (cleared on release); `worktree_path` is the dedicated git worktree stages 2–4 run in (`null` until it is created, cleaned up on merge/abort). See "Claim protocol", "Git worktree isolation" and "Release on failure".
 
 `repo_slug_safe` = `owner_repo` (slash → underscore). Update after every stage.
 
@@ -255,7 +279,7 @@ Important: **all standards values in the briefings are placeholders** (`<branch_
 > 4. Output: comment `## [stage:validator] <GO|STOP>` on the issue + parent report (max 100 words).
 
 **Parent decision:**
-- STOP → loop paused, Telegram text to the user with reasons + suggestion `/create-issue --refine <num>`.
+- STOP → **release the claim + remove the worktree** (see "Release on failure"), loop paused, Telegram text to the user with reasons + suggestion `/create-issue --refine <num>`.
 - GO → stage 2.
 
 ### Stage 2 — Implementer (type dispatch)
@@ -267,7 +291,23 @@ Important: **all standards values in the briefings are placeholders** (`<branch_
 | `code` (default) | `references/subagent-briefs/code-implementer.md` |
 | `research` | `references/subagent-briefs/research-implementer.md` |
 
-The skill loads the matching brief file, replaces placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`, `{{commit_identity}}`) from the AGENTS.md cache + state tracker, and dispatches it as the subagent briefing. `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent from AGENTS.md.
+The skill loads the matching brief file, replaces placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{worktree_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`, `{{commit_identity}}`) from the AGENTS.md cache + state tracker, and dispatches it as the subagent briefing. `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent from AGENTS.md.
+
+**Git worktree isolation (parallel-safety, Phase 1):** so concurrent runs on the same repo never fight over the primary `repo_path` checkout, the branch is created in a **dedicated git worktree** instead of mutating `repo_path` in place. Before dispatching the Implementer brief:
+
+```bash
+git -C <repo_path> worktree add <tmp-dir>/<slug-safe>-<issue> -b <branch> <pr_base>
+```
+
+Write the resulting path into the state tracker as `worktree_path` and pass it to the Implementer (`{{worktree_path}}`). **Stages 2–4 (Implementer, Tester, Critic, and the optional Visual Reviewer) operate inside that worktree**, not in `repo_path`. Every `git checkout <branch>` / `git diff` / build in those stages runs with the worktree as the working directory.
+
+**Cleanup:** remove the worktree on **Closer merge** OR on **abort / ESCALATE / STOP / hard-cap**:
+
+```bash
+git worktree remove <worktree_path> --force
+```
+
+The branch itself is deleted by the squash-merge (`--delete-branch`), so worktree removal is the only extra cleanup step.
 
 **Commit identity (all commits in stage 2 and stage 5):** if AGENTS.md carries a `commit_identity` block, the Implementer and Closer MUST run `git config user.name "<name>"` and `git config user.email "<email>"` from it **before** any commit. Never use a company/shared email as author. Never add a `Co-authored-by:` trailer or bot footer to a commit message or PR body (honor the `no_unconfigured_coauthors` hard-gate) — GitHub appends co-author lines from the squashed commits on squash-merge, so the individual commits must already be clean.
 
@@ -363,8 +403,8 @@ Sits **between Tester (build green) and Critic** — the browser only spins up o
 
 **Parent decision:**
 - APPROVE → stage 5.
-- REVISE → `iterations++`, stage 2 again with the Critic comment as the briefing. **Hard cap: 3 revises.**
-- ESCALATE → pause, Telegram text to the user.
+- REVISE → `iterations++`, stage 2 again with the Critic comment as the briefing. **Hard cap: 3 revises** (on hitting the cap: release the claim + remove the worktree, see "Release on failure").
+- ESCALATE → **release the claim + remove the worktree** (see "Release on failure"), pause, Telegram text to the user.
 
 ### Stage 5 — Closer (type routing)
 
@@ -379,8 +419,9 @@ Sits **between Tester (build green) and Critic** — the browser only spins up o
 >    - **`code` loop:** pull locally + rebuild live stack with `<deploy_command>` (from AGENTS.md or registry). Health check post-deploy.
 >    - **`research` loop:** no deploy (doc-only). Optionally file a follow-up implementation issue via `/create-issue --type=code` with the spec stub from the doc.
 > 5. **(Optional) persist a loop summary** in your knowledge system. If you use [MemPalace](https://github.com/MemPalace/mempalace), call `mcp__mempalace__add_drawer` with palace/wing/room suited to your setup — e.g. `<your-palace>/<your-code-wing>/<your-changes-room>` for code loops (repo + PR + commit + loop summary + Tester findings) and `<your-palace>/<your-personal-wing>/<your-process-room>` for research loops (loop-pattern insights + doc path + follow-up issue spec). Skip this step if your team uses a different knowledge store (or none).
-> 6. Issue comment `## [stage:closer] merged & deployed` (or `merged` for research) with PR number + wallclock + drawer ID.
-> 7. Loop state final (`status: "closed"`, `closed_at: ...`).
+> 6. **Worktree cleanup:** `git worktree remove <worktree_path> --force` (the branch was already deleted by the squash-merge). The claim is not released — the issue is closed via `Closes #N`, not returned to the pool.
+> 7. Issue comment `## [stage:closer] merged & deployed` (or `merged` for research) with PR number + wallclock + drawer ID.
+> 8. Loop state final (`status: "closed"`, `closed_at: ...`).
 >
 > Parent output: max 250 words with PR number, merge commit, deploy status (or n/a for research), drawer ID, wallclock.
 
@@ -391,6 +432,18 @@ Sits **between Tester (build green) and Critic** — the browser only spins up o
 - Max 3 Implementer↔Critic revise rounds (a Visual Reviewer FAIL shares this cap)
 - Max wallclock 90 min — on overrun, pause + Telegram text
 - 3x build fails in Tester → ESCALATE
+
+On **any** hard-cap hit (revise cap, wallclock overrun, 3x build fail), the run exits — **release the claim and remove the worktree** as described in "Release on failure" below.
+
+## Release on failure (parallel-safety, Phase 1)
+
+Any exit that is **not** a successful Closer merge — a Validator STOP, a loop-type / AGENTS.md STOP, a Critic ESCALATE, a hard-cap hit, or any abort — must return the issue to the pool so another agent can pick it up:
+
+1. **Release the claim:** remove the run's own `claimed:<agent-id>` label and its assignee — `gh issue edit <n> --remove-label claimed:<agent-id> --remove-assignee @me` — and post a `## [claim:released]` note stating the reason (e.g. `## [claim:released] Validator STOP` / `... ESCALATE` / `... hard-cap: 3 revises`).
+2. **Remove the worktree** (if one was created): `git worktree remove <worktree_path> --force`.
+3. Set the state tracker `status` accordingly (`stopped` / `escalated` / `aborted`) and clear `claim`.
+
+A successful Closer merge does the same worktree cleanup but keeps the audit trail (the issue is closed by `Closes #N`, not returned to the pool).
 
 ## Telegram / channel updates
 

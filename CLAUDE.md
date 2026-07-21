@@ -68,6 +68,10 @@ Absent block → zero behavior change. Full schema and enforcement details in `A
 
 The optional `commit_identity` field (`name` + `email`) in the AGENTS.md `work-issue:` namespace fixes the author identity used for every loop commit, so attribution never depends on ambient `git config` or assistant memory. When set, the `/work-issue` Implementer and Closer run `git config user.name`/`user.email` from it before every commit. It pairs with the `no_unconfigured_coauthors` hard-gate: no `Co-authored-by:` trailer or bot footer in commits/PRs unless explicitly configured — this stops a bot or foreign account from being pulled in as a contributor (GitHub appends co-author lines from the squashed commits on squash-merge, so each individual commit must already be clean). Absent → falls back to the ambient `git config`; zero behavior change.
 
+## Parallel-safe `/work-issue` (Phase 1)
+
+`/work-issue` is **parallel-safe**: two agents/terminals can run it concurrently on the same repo without colliding. Each run **claims** its issue in the Stage 0 pre-flight (assignee + `claimed:<agent-id>` label + `## [claim]` comment, with a read-after-write confirm where the earliest claim wins and a 60-min stale-claim reclaim) and works in an **isolated git worktree** instead of the primary checkout. The claim is released on any failure exit (STOP/ESCALATE/hard-cap/abort) so the issue returns to the pool; the worktree is removed on merge or abort. This is Phase 1 of the parallel-multi-agent design ([#7](https://github.com/domek-labs/stagecrew/issues/7)) — no controller or ready-queue yet.
+
 ## Recommended companion MCPs (optional)
 
 Two MIT-licensed external MCPs make the loop richer. Neither is required — the skills call them opportunistically and fall back to plain `grep` / `ls` / no-op when the tool namespace is missing.

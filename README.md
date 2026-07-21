@@ -41,6 +41,10 @@ After install, restart Claude so the plugin cache picks up the new skills.
 
 See `CLAUDE.md` for the quickstart.
 
+## Parallel-safe `/work-issue` (Phase 1)
+
+`/work-issue` is **parallel-safe**: concurrent runs on one repo each claim their issue (assignee + `claimed:<agent-id>` label + claim comment, earliest-claim-wins, 60-min stale-reclaim) and work in an **isolated git worktree** rather than the shared checkout. A claim is released on any failure exit so the issue returns to the pool. This is Phase 1 of the parallel-multi-agent design ([#7](https://github.com/domek-labs/stagecrew/issues/7)) — no controller or merge-queue yet.
+
 ## Optional component registry
 
 Repos with real component patterns (a frontend framework, a backend domain layer, or both) can opt into a canonical component registry via a `components:` block in AGENTS.md. When set, the loop enforces reuse across sessions: Validator gates in-scope issues, Implementer refuses inline duplicates, Critic scans for dupes. `usage_policy` picks the enforcement level (`prefer_existing` warns, `strict` STOPs and requires an ADR link). Absent block = zero behavior change. See `AGENTS.md` under "Component Registry" and `docs/adr/0001-components-registry.md` for the design.
