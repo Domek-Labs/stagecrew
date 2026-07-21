@@ -72,7 +72,7 @@ Per-repo coding-standards spec for AI-assisted workflows. Single source of truth
 
 ## Architecture
 
-Single-plugin repo for the `stagecrew` Claude Code plugin (formerly `loop-engineering-workflow`).
+Single-plugin repo for the `stagecrew` Claude Code plugin.
 
 - `.claude-plugin/plugin.json` — plugin manifest (name, version)
 - `CLAUDE.md` — plugin documentation

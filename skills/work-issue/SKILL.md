@@ -1,11 +1,11 @@
 ---
 name: work-issue
-description: "Drive a GitHub issue through a 5-stage spec→build loop (Validator → Implementer → Tester → Critic → Closer). Multi-repo. Pure-reader — all standards values come from AGENTS.md at the repo root (no skill defaults). Multi-type system: reads the loop-type:<type> label and dispatches to a type-specific subagent brief (code|research). Mandatory pre-flight checks AGENTS.md existence, YAML parseability and completeness. Codebase-memory mandatory pre-flight. Auto-PR + merge on APPROVE. Triggers: /work-issue, work issue, loop engineering, drive issue, spec build loop."
+description: "Drive a GitHub issue through a 5-stage spec→build loop (Validator → Implementer → Tester → Critic → Closer). Multi-repo. Pure-reader — all standards values come from AGENTS.md at the repo root (no skill defaults). Multi-type system: reads the loop-type:<type> label and dispatches to a type-specific subagent brief (code|research). Mandatory pre-flight checks AGENTS.md existence, YAML parseability and completeness. Codebase-memory mandatory pre-flight. Auto-PR + merge on APPROVE. Triggers: /work-issue, work issue, loop workflow, drive issue, spec build loop."
 ---
 
 # /work-issue — Spec→build loop for GitHub issues
 
-**Type:** loop engineering / autonomous issue implementation
+**Type:** loop workflow / autonomous issue implementation
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Drive a fully-specified GitHub issue (Idea + Spec + AC + Files-To-Touch + Test-P
 
 This skill is a **pure-reader**: no hardcoded defaults. All standards values (branch_pattern, syntax_check, smoke_test, ...) come from **AGENTS.md at the repo root**. Missing AGENTS.md → STOP with a pointer to `/init-agents`.
 
-Pattern from internal loop-engineering experiments (2026-06). First end-to-end test ran in 33 minutes with 2 iterations and all 5 acceptance criteria green.
+Pattern from internal loop-workflow experiments (2026-06). First end-to-end test ran in 33 minutes with 2 iterations and all 5 acceptance criteria green.
 
 ## Invocation variants
 
@@ -361,7 +361,7 @@ Sits **between Tester (build green) and Critic** — the browser only spins up o
 ### Stage 5 — Closer (type routing)
 
 **Briefing (template):**
-> 1. Create a PR with body (summary, standards used from AGENTS.md, test plan, "Closes #N", loop-engineering process block). Base: `<pr_base>`.
+> 1. Create a PR with body (summary, standards used from AGENTS.md, test plan, "Closes #N", loop-workflow process block). Base: `<pr_base>`.
 >    - **`code` loop:** PR title `<commit_format>`-compatible (e.g., `feat(scope): ...`).
 >    - **`research` loop:** PR title `research(<topic>): findings + follow-up issue spec`.
 > 2. Squash-merge to `<pr_base>` (`--delete-branch`).
@@ -417,9 +417,9 @@ If AGENTS.md is missing in the repo → STOP with a pointer to `/init-agents` (s
 - Does not create ADRs
 - Does not auto-revert on a stack crash
 
-## Loop-engineering pattern (reference)
+## Loop-workflow pattern (reference)
 
-Distilled from internal loop-engineering experiments (2026-06):
+Distilled from internal loop-workflow experiments (2026-06):
 
 | Field | Here |
 |-------|------|

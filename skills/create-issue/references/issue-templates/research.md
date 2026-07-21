@@ -112,7 +112,7 @@ work-issue:
 
 ## Standards Notes
 
-**Research issue (Implementer = Researcher):** loop-engineering pattern applied to
+**Research issue (Implementer = Researcher):** loop-workflow pattern applied to
 a knowledge-generation task instead of a coding task. The Implementer subagent receives
 a research brief instead of a code brief. AGENTS.md `ac_templates` (typically
 syntax check + smoke test + secret scan) are only partially relevant here — the

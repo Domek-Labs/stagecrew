@@ -4,11 +4,19 @@ An autonomous multi-stage agent crew that specs, builds, tests, critiques and sh
 
 Pure-reader: standards live in your repo's `AGENTS.md`, not in this plugin.
 
-> **Breaking (rename):** this plugin was previously published as `loop-engineering-workflow`. The skill prefix is now `stagecrew:*` (e.g. `stagecrew:work-issue`). Re-add the marketplace and reinstall under the new name, then restart Claude.
-
 ## Why
 
 Writing code with AI agents works best when every issue carries its own spec, every repo carries its own conventions, and every loop has a small, fixed set of stages that can be audited after the fact. This plugin gives you those three things — a way to bootstrap repo standards, a way to specify an issue, and a way to drive that issue through to merge — without baking any opinions into the plugin itself.
+
+## How it works
+
+One issue flows through a fixed, auditable five-stage crew — spec-driven, never one-shot:
+
+```
+issue → Validator → Implementer → Tester → Critic → Closer → merged PR
+```
+
+Each stage posts a `[stage:<name>]` comment on the issue as an audit log, then hands off to the next. The Critic can send work back to the Implementer (bounded revise loop); the Closer opens the PR and merges on approval.
 
 ## Status
 
@@ -17,7 +25,7 @@ Alpha — in active development. The current version lives in `.claude-plugin/pl
 ## Install
 
 ```
-claude plugin marketplace add https://github.com/scheineckerdominik-rgb/stagecrew
+claude plugin marketplace add https://github.com/domek-at/stagecrew
 claude plugin install stagecrew
 ```
 
@@ -62,6 +70,10 @@ Right now this plugin is built specifically around **GitHub issues**: an issue i
 The underlying primitives — a per-issue spec standard, a per-repo `AGENTS.md`, and a small fixed set of audited stages — are tracker-agnostic. If your work lives somewhere else (Linear, Jira, a plain Markdown task file, an internal queue), you can rewrite the thin GitHub layer in the skills to read and write your own source of truth instead. The pipeline shape stays the same; only the issue/PR I/O changes.
 
 PRs that generalize this layer are welcome.
+
+## Example consumer
+
+[**job-search-loop-template**](https://github.com/domek-at/job-search-loop-template) is a real-world repo built around this loop: a git-native job-search system (master CV + criteria-as-code + generated application tracking) that recommends stagecrew as its optional automation layer. A good reference for what an `AGENTS.md`-driven consumer looks like in practice.
 
 ## License
 

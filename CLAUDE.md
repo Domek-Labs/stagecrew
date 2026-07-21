@@ -4,8 +4,6 @@
 
 Pure-reader plugin: all coding standards live in your repo's `AGENTS.md`, not in this plugin. You bootstrap once per repo, then any issue can flow through the loop.
 
-> **Breaking (rename):** formerly published as `loop-engineering-workflow`. The skill prefix changed to `stagecrew:*` (e.g. `stagecrew:work-issue`). A `claude restart` is required after updating so the renamed plugin cache path loads.
-
 **Multi-type system:** the same 5-stage skeleton powers both
 code loops (software implementation) and research loops (knowledge generation
 with a test matrix). Each type has its own issue template and subagent brief — see the
@@ -31,7 +29,7 @@ That is the entire loop. Bootstrap → Genesis → Execution.
 
 ## Umbrella Skill: `/loop`
 
-If you do not know which sub-skill you need, just call `/loop` — it asks one clarifying question and routes you. Triggers on "loop", "loop engineering", "work issue", "spec build", "coding loop", "github workflow".
+If you do not know which sub-skill you need, just call `/loop` — it asks one clarifying question and routes you. Triggers on "loop", "loop workflow", "work issue", "spec build", "coding loop", "github workflow".
 
 ## Loop Types
 
@@ -50,9 +48,9 @@ matching subagent brief. The Tester/Critic/Closer stages stay structurally ident
 but check type-specific criteria (build GREEN vs. doc quality, code-diff quality vs.
 "follow-up issue spec ready to start").
 
-Battle-tested in this repo: code loops (#6 docs/translation, #7 chore/audit).
-Research loops: infrastructure activated in #10, first end-to-end battle-test
-ready as a follow-up issue (pick a research topic and call `/work-issue --type=research`).
+Both loop types are exercised end-to-end: code loops ship a PR with a diff + tests,
+research loops ship a findings doc plus a follow-up implementation-issue spec
+(pick a research topic and call `/work-issue --type=research`).
 
 ## Optional features
 
@@ -71,7 +69,7 @@ Two MIT-licensed external MCPs make the loop richer. Neither is required — the
 
 ## Roadmap
 
-See Epic #1 in this repo for the rolling roadmap.
+See the repo issues (labelled `roadmap`) for the rolling roadmap.
 
 ## License
 

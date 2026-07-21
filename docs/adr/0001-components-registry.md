@@ -10,7 +10,7 @@ Component drift across sessions and users is a real, recurring cost. The same UI
 
 The same trap exists on the backend: domain entities, value objects and query handlers get re-derived from DTOs on the boundary, subtly diverging every time, until "the same thing" is implemented in three places with three subtly different invariants.
 
-The loop-engineering workflow can prevent this by treating a repo's Component Registry as a hard-gate: a single implementation carries a `variant` prop (or a discriminated feature flag) for the code layer, plus a Markdown catalog that names the components and their usage rules and backend contract shape. Reused across issues, enforced across sessions, honored by the Validator / Implementer / Critic stages.
+The loop-workflow workflow can prevent this by treating a repo's Component Registry as a hard-gate: a single implementation carries a `variant` prop (or a discriminated feature flag) for the code layer, plus a Markdown catalog that names the components and their usage rules and backend contract shape. Reused across issues, enforced across sessions, honored by the Validator / Implementer / Critic stages.
 
 The gate has to be **opt-in** — repos without reusable-component patterns (docs-only, single-script, thin CLI wrappers) should not pay any enforcement cost. Zero behavior change when the block is absent.
 

@@ -1,7 +1,7 @@
 ---
 name: loop
 description: >
-  Loop-engineering workflow umbrella. Routes to /init-agents (bootstrap AGENTS.md for a repo), /create-issue (idea → fully-specified GitHub issue), or /work-issue (issue → merged PR via 5-stage Validator → Implementer → Tester → Critic → Closer pipeline). Triggers: "loop", "loop engineering", "work issue", "spec build", "coding loop", "github workflow", "github loop", "spec build loop". Routes when intent is unclear.
+  Loop-workflow workflow umbrella. Routes to /init-agents (bootstrap AGENTS.md for a repo), /create-issue (idea → fully-specified GitHub issue), or /work-issue (issue → merged PR via 5-stage Validator → Implementer → Tester → Critic → Closer pipeline). Triggers: "loop", "loop workflow", "work issue", "spec build", "coding loop", "github workflow", "github loop", "spec build loop". Routes when intent is unclear.
 ---
 
 # /loop — Loop-Engineering Workflow (Umbrella)
@@ -10,7 +10,7 @@ description: >
 
 ## Purpose
 
-Central entry point for the loop-engineering workflow: GitHub issue → merged PR (or research findings) via a 5-stage agent pipeline.
+Central entry point for the loop-workflow workflow: GitHub issue → merged PR (or research findings) via a 5-stage agent pipeline.
 
 Three sub-skills cover the three phases:
 
@@ -18,7 +18,7 @@ Three sub-skills cover the three phases:
 |-------|-----------|------|----------------|
 | **Bootstrap** | `/init-agents` | Create `AGENTS.md` for a repo (one-time per repo, pure-reader prerequisite) | "init agents", "create agents.md", "coding spec bootstrap", "initialize repo standards" |
 | **Genesis** | `/create-issue` | Idea → fully-specified GitHub issue (spec standard with Idea/AC/Files/Test-Plan/OoS) | "create issue", "new issue", "create feature", "spec issue", "idea as ticket" |
-| **Execution** | `/work-issue` | Issue → merged PR via 5 stages (Validator → Implementer → Tester → Critic → Closer) | "work issue", "drive issue", "loop engineering", "spec build loop" |
+| **Execution** | `/work-issue` | Issue → merged PR via 5 stages (Validator → Implementer → Tester → Critic → Closer) | "work issue", "drive issue", "loop workflow", "spec build loop" |
 
 ## Workflow at a glance
 
@@ -89,7 +89,7 @@ What do you want to do?
 
 ## Why an umbrella
 
-Three sub-skills, one umbrella: **loop engineering** — the loop that drives a specified task through bootstrap → genesis → execution.
+Three sub-skills, one umbrella: **loop workflow** — the loop that drives a specified task through bootstrap → genesis → execution.
 
 - `/init-agents` = capture standards (in the repo's AGENTS.md)
 - `/create-issue` = capture intent (in a GitHub issue)
