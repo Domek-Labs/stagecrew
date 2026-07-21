@@ -37,12 +37,17 @@ After install, restart Claude so the plugin cache picks up the new skills.
 - `/create-issue` — idea → fully-specified GitHub issue
 - `/work-issue` — issue → merged PR via Validator → Implementer → Tester → Critic → Closer
 - `/loop` — umbrella router for the three above
+- `github` — reference for git/gh interaction conventions (commit identity, no unconfigured co-authors, PR body, squash-merge caveat)
 
 See `CLAUDE.md` for the quickstart.
 
 ## Optional component registry
 
 Repos with real component patterns (a frontend framework, a backend domain layer, or both) can opt into a canonical component registry via a `components:` block in AGENTS.md. When set, the loop enforces reuse across sessions: Validator gates in-scope issues, Implementer refuses inline duplicates, Critic scans for dupes. `usage_policy` picks the enforcement level (`prefer_existing` warns, `strict` STOPs and requires an ADR link). Absent block = zero behavior change. See `AGENTS.md` under "Component Registry" and `docs/adr/0001-components-registry.md` for the design.
+
+## Commit attribution
+
+AGENTS.md carries an optional `commit_identity` field (`name` + `email`) in the `work-issue:` namespace — the 12th standards field. When set, the `/work-issue` Implementer and Closer run `git config user.name`/`user.email` from it before every loop commit, so attribution never depends on ambient `git config` or assistant memory. It pairs with the `no_unconfigured_coauthors` hard-gate: no `Co-authored-by:` trailer or bot footer in commits/PRs unless explicitly configured — this keeps a bot or a foreign account from being pulled in as a repo contributor (GitHub appends co-author lines from the squashed commits on squash-merge, so each individual commit must already be clean). Absent field = falls back to the ambient `git config`; zero behavior change. The `github` skill documents the full git/gh interaction conventions.
 
 ## Loop types
 
