@@ -25,7 +25,7 @@ Alpha — in active development. The current version lives in `.claude-plugin/pl
 ## Install
 
 ```
-claude plugin marketplace add https://github.com/domek-at/stagecrew
+claude plugin marketplace add https://github.com/domek-labs/stagecrew
 claude plugin install stagecrew
 ```
 
@@ -78,7 +78,7 @@ PRs that generalize this layer are welcome.
 
 ## Example consumer
 
-[**job-search-loop-template**](https://github.com/domek-at/job-search-loop-template) is a real-world repo built around this loop: a git-native job-search system (master CV + criteria-as-code + generated application tracking) that recommends stagecrew as its optional automation layer. A good reference for what an `AGENTS.md`-driven consumer looks like in practice.
+[**job-search-loop-template**](https://github.com/domek-labs/job-search-loop-template) is a real-world repo built around this loop: a git-native job-search system (master CV + criteria-as-code + generated application tracking) that recommends stagecrew as its optional automation layer. A good reference for what an `AGENTS.md`-driven consumer looks like in practice.
 
 ## License
 
