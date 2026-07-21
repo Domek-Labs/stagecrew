@@ -56,7 +56,7 @@ The user is walked through all 11 mandatory v3 frontmatter fields plus the optio
 | `pr_base` | = `default_branch`; if a `dev` branch exists (`gh api repos/<slug>/branches/dev`): suggest `dev` (do not set autonomously) |
 | `commit_format` | `conventional` (count the last 30 commits: % matching `type(scope): description` — if >70% → `conventional`, otherwise `custom`) |
 | `syntax_check` | derive from the dominant language via `get_architecture`: TypeScript → `tsc --noEmit`, JavaScript → `node --check <file>`, Python → `python -m py_compile <file>`, otherwise empty |
-| `smoke_test` | from `docker-compose.yml` (if present) → `docker compose build && docker compose up -d --force-recreate`. Otherwise from `package.json scripts.test` or `pyproject.toml scripts.test`. Otherwise empty |
+| `smoke_test` | from `docker-compose.yml` (if present) → `docker compose build && docker compose up -d --force-recreate`. Otherwise from `package.json scripts.test` or `pyproject.toml scripts.test`. Otherwise empty. **May be a plain string OR a scope mapping** — see "Optional field: scope-aware `smoke_test`" below. For a container-recreating command, propose the scope-mapping form with `parallel_safe: false`, since `--force-recreate` is unsafe to run while another loop is active. |
 | `deploy_command` | empty (user decides) |
 | `linter` | from the repo: detect `eslint`/`ruff`/`black` configs |
 | `hard_gates` | list, defaults: "No direct edits on default_branch", "No new secrets in repo", "All MCP tools need a test example in their doc block", "no_unconfigured_coauthors" |
@@ -78,6 +78,26 @@ commit_identity:
 When set, the `/work-issue` Implementer and Closer run `git config user.name` / `git config user.email` from it **before every commit**. This pairs with the `no_unconfigured_coauthors` hard-gate:
 
 - **`no_unconfigured_coauthors`** — no `Co-authored-by:` trailer in commit messages or PR bodies unless explicitly configured in AGENTS.md. This prevents a bot or a foreign account from being pulled in as a repo contributor. Note: GitHub appends co-author lines from the individual commits when a PR is squash-merged, so the individual commits must already be clean. `/init-agents` adds this gate to the `hard_gates` default list.
+
+### Optional shape: scope-aware `smoke_test` (opt-in, backwards-compatible)
+
+`smoke_test` accepts **either** a plain string (the current form, unchanged) **or** a scope mapping. The plain string is the zero-change default and still behaves exactly as before. Offer the scope-mapping form when the repo has more than one testable area (e.g. a backend + a frontend), or when the smoke command is container-recreating (and therefore unsafe to run concurrently):
+
+```yaml
+smoke_test:
+  backend: "<command>"        # run when the diff touches the backend scope
+  frontend: "<command>"       # run when the diff touches the frontend scope
+  default: ""                 # run when the diff matches no named scope (empty = skip)
+  parallel_safe: true         # optional, default true; false = skipped by the Tester when another loop is active on the repo
+  scopes:                     # only needed when AGENTS.md has no `components:` block
+    backend:  ["api/**", "server/**", "**/*.py"]
+    frontend: ["web/**", "app/**", "**/*.tsx"]
+```
+
+- **Scope resolution:** the `/work-issue` Tester resolves the scope from the diff paths — against `components.code_globs` if a `components:` block is set, otherwise against the mapping's own `scopes:` globs — and runs only the matching command. A diff that matches no scope is "not applicable to this diff scope" and the smoke step is skipped with a named reason.
+- **`parallel_safe: false`:** declares a smoke test unsafe to run while another loop holds an active claim on the repo (e.g. `docker compose up -d --force-recreate`). The Tester then skips it with a reason when a concurrent claim exists. Default `true` = no change. This is a declaration only; the loop never auto-detects parallel-safety of an arbitrary command.
+
+Full runtime semantics: see `skills/work-issue/SKILL.md` under "Scope-aware smoke_test" and the Tester stage.
 
 ### Optional field: `components:` (component-registry, opt-in)
 
@@ -190,7 +210,7 @@ work-issue:
   pr_base: main | dev
   commit_format: "conventional" | "custom"
   syntax_check: "<command>"
-  smoke_test: "<command>"
+  smoke_test: "<command>"             # plain string OR scope mapping (backend/frontend/default + optional parallel_safe, scopes)
   deploy_command: "<command>"
   linter: "<command>"
   commit_identity:                    # optional

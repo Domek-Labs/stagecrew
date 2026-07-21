@@ -4,7 +4,7 @@
 
 **Loaded by:** `skills/work-issue/SKILL.md` for the subagent-brief selection.
 
-**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}`, `{{components}}`, `{{commit_identity}}` — substituted at render time from the AGENTS.md cache + state tracker. `{{components}}` is `null` when the optional `components:` block is absent from AGENTS.md; `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent.
+**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}`, `{{components}}`, `{{commit_identity}}`, `{{git_remote}}` — substituted at render time from the AGENTS.md cache + state tracker. `{{components}}` is `null` when the optional `components:` block is absent from AGENTS.md; `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent. `{{git_remote}}` is the GitHub working remote from the repo registry (`git_remote` field); it falls back to `origin` when the registry does not declare one.
 
 ---
 
@@ -25,7 +25,7 @@
 > 1. **Branch setup**
 >    ```bash
 >    cd {{repo_path}}
->    git fetch origin && git checkout {{default_branch}} && git pull
+>    git fetch {{git_remote}} && git checkout {{default_branch}} && git pull
 >    git checkout -b <branch-resolved-via-pattern>
 >    ```
 >    Derive the branch name from `{{branch_pattern}}` (e.g., `feature/voice-diff-review`).
@@ -75,7 +75,7 @@
 >
 > 7. **Push**
 >    ```bash
->    git push -u origin <branch>
+>    git push -u {{git_remote}} <branch>
 >    ```
 >
 > 8. **Issue comment** `## [stage:implementer] ready for test` with:

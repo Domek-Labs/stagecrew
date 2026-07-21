@@ -6,7 +6,7 @@
 
 **Pattern origin:** first end-to-end test in an internal bot project (2026-06-26).
 
-**Placeholders:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}`, `{{commit_identity}}` — substituted at render time. `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent from AGENTS.md.
+**Placeholders:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}`, `{{commit_identity}}`, `{{git_remote}}` — substituted at render time. `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent from AGENTS.md. `{{git_remote}}` is the GitHub working remote from the repo registry (`git_remote` field); it falls back to `origin` when the registry does not declare one.
 
 ---
 
@@ -23,7 +23,7 @@
 >
 > ```bash
 > cd {{repo_path}}
-> git fetch origin && git checkout {{default_branch}} && git pull
+> git fetch {{git_remote}} && git checkout {{default_branch}} && git pull
 > git checkout -b research/{{topic_slug}}
 > ```
 >
@@ -92,7 +92,7 @@
 > ... findings summary ...
 >
 > Refs #{{issue_num}}"
-> git push -u origin research/{{topic_slug}}
+> git push -u {{git_remote}} research/{{topic_slug}}
 > ```
 >
 > **No `Co-authored-by:` trailer** and no bot footer (honor the `no_unconfigured_coauthors` hard-gate) — unless AGENTS.md explicitly configures one. GitHub appends co-author lines from the individual commits on squash-merge, so the commit must already be clean.
