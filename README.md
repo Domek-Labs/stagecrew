@@ -1,5 +1,7 @@
 # stagecrew — spec-driven agentic coding loops for Claude Code
 
+![stagecrew pipeline — Validator → Implementer → Tester → Critic → Closer](assets/banner.png)
+
 > **TL;DR** — `/init-agents` bootstraps your repo standards → `/create-issue` turns an idea into a fully-spec'd GitHub issue → `/work-issue` drives it to a merged PR through a fixed, auditable 5-stage pipeline. Standards live in your repo, not in this plugin.
 
 An autonomous crew that specs, builds, tests, critiques, and ships a GitHub issue — without babysitting each step:
