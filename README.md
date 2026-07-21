@@ -60,13 +60,22 @@ Use `/create-issue --type=<code|research> "<idea>"` to pick one explicitly, or l
 
 ## Recommended companion MCPs (optional)
 
-The plugin runs standalone — none of the skills require an external MCP server. But two MIT-licensed MCPs make the loop noticeably richer if they're wired into your Claude Code session. Both are opportunistically called: when the tool namespace is missing, the skills fall back to plain `grep` / `ls` / no-op.
+The plugin runs standalone — none of the skills require an external MCP server. But a few MCPs make the loop noticeably richer if they're wired into your Claude Code session. All are opportunistically called: when the tool namespace is missing, the skills fall back to plain `grep` / `ls` / no-op.
 
-- **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — local code-graph MCP. Parses your repo with tree-sitter, exposes `list_projects`, `index_repository`, `index_status`, `search_code`, `get_architecture`, `detect_changes`, and more. `/init-agents` uses it to suggest architecture / conventions defaults, `/create-issue` uses it for files-to-touch suggestions plus hotspot warnings, and `/work-issue` calls it from the Validator, Implementer, and Critic stages for code-graph-backed evidence.
+### Code-graph MCP (pick one — either/or)
 
-- **[MemPalace](https://github.com/MemPalace/mempalace)** — verbatim knowledge-store MCP. The `/work-issue` Closer stage can persist a loop summary (repo, PR, commit, Tester findings) as a "drawer" so future sessions can search for prior decisions. The Closer's persistence step is a no-op when MemPalace is not installed.
+The `/init-agents`, `/create-issue`, and `/work-issue` (Validator/Implementer/Critic) stages use a code-graph MCP for architecture defaults, files-to-touch suggestions, and code-backed evidence. Two good options — you only need one:
 
-Neither is required. Install what you like, skip what you do not.
+- **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — lightweight tree-sitter code-graph. Exposes `list_projects`, `index_repository`, `search_code`, `get_architecture`, `detect_changes`. **When:** the sensible default — small footprint, quick to wire up, good for most repos.
+- **[code-review-graph](https://github.com/tirth8205/code-review-graph)** — a more powerful persistent code-intelligence graph: auto community/architecture mapping with cohesion scores, impact radius, execution flows, incremental updates, CLI **and** MCP, multi-platform, with benchmarked token reductions on reviews. **When:** code-heavy or larger repos, and when cutting review token cost matters. **Caveat:** semantic search needs a separate `embed` step + an embedding provider (API key / cost); the graph/keyword queries work without it.
+
+Both speak the same "code-graph" role the skills call opportunistically — install whichever fits; the loop degrades gracefully if neither is present. (On doc/markdown-heavy repos the code-graph benefit is small either way.)
+
+### Knowledge store (optional)
+
+- **[MemPalace](https://github.com/MemPalace/mempalace)** — verbatim knowledge-store MCP. The `/work-issue` Closer stage can persist a loop summary (repo, PR, commit, Tester findings) as a "drawer" so future sessions can search for prior decisions. No-op when not installed.
+
+None is required. Install what you like, skip what you do not.
 
 ## Adapting to other workflows
 
