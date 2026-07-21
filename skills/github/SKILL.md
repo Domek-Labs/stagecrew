@@ -50,6 +50,14 @@ Do **not** add a `Co-authored-by:` trailer or a bot footer to any commit message
 
 stagecrew squash-merges PRs. **GitHub appends the co-author lines from the individual squashed commits onto the squash commit.** So a clean PR body is not enough — **every individual commit on the branch must already be free of `Co-authored-by:` trailers**. Keep the commits clean at author time (§2, §3); do not rely on cleaning up at merge time.
 
+## 6. Non-interactive shell commands (agent-hardening)
+
+An agent runs shell commands non-interactively — a prompt for `y/n` hangs the loop indefinitely. On many systems `cp`/`mv`/`rm` are aliased to `-i` (interactive) mode, and `git`/`gh` can open a pager or editor.
+
+- **Always pass non-interactive flags** for file ops: `cp -f`, `mv -f`, `rm -f`, `rm -rf` (never a bare `cp`/`mv`/`rm` that may inherit an `-i` alias).
+- Avoid commands that open an interactive editor/pager: set `GIT_PAGER=cat` / `--no-pager`, provide `-m` for commit messages, use `gh --json`/`-q` instead of paged output, and use `gh` flags like `--yes` where a confirmation would otherwise block.
+- Interactive git flows (`git rebase -i`, `git add -i`) are unavailable — script the non-interactive equivalent.
+
 ## See also
 
 - `skills/init-agents/references/AGENTS.md.template` — the `commit_identity` field + the `no_unconfigured_coauthors` hard-gate.

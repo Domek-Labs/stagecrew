@@ -6,7 +6,7 @@
 # Lege sie im Repo-Root ab und commite sie auf den Default-Branch.
 
 work-issue:
-  branch_pattern: "feature/<scope>-<short>"      # default
+  branch_pattern: "feature/<scope>-<issue>"      # default; <issue> = issue number → branch↔issue↔PR traceable
   default_branch: main                           # main | dev
   pr_base: main                                  # main | dev
   commit_format: "conventional"                  # type(scope): description

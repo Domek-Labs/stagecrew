@@ -51,7 +51,7 @@ The user is walked through all 11 mandatory v3 frontmatter fields plus the optio
 
 | Field | Default source / heuristic |
 |-------|----------------------------|
-| `branch_pattern` | `feature/<scope>-<short>` (standard); derive from the last 20 branch names if a pattern is recognizable (`git branch -r`) |
+| `branch_pattern` | `feature/<scope>-<issue>` (standard; include the issue number for branch↔issue↔PR traceability); derive from the last 20 branch names if a pattern is recognizable (`git branch -r`) |
 | `default_branch` | `gh api repos/<slug> --jq .default_branch` |
 | `pr_base` | = `default_branch`; if a `dev` branch exists (`gh api repos/<slug>/branches/dev`): suggest `dev` (do not set autonomously) |
 | `commit_format` | `conventional` (count the last 30 commits: % matching `type(scope): description` — if >70% → `conventional`, otherwise `custom`) |

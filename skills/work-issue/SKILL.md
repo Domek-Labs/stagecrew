@@ -49,7 +49,7 @@ YAML frontmatter + Markdown body. The frontmatter is parsed by the skill; the bo
 ```yaml
 ---
 work-issue:
-  branch_pattern: "feature/<scope>-<short>"
+  branch_pattern: "feature/<scope>-<issue>"
   default_branch: main | dev
   pr_base: main | dev
   commit_format: "conventional" | "custom"
