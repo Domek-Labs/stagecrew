@@ -72,9 +72,27 @@ The optional `commit_identity` field (`name` + `email`) in the AGENTS.md `work-i
 
 `/work-issue` is **parallel-safe**: two agents/terminals can run it concurrently on the same repo without colliding. Each run **claims** its issue in the Stage 0 pre-flight (assignee + `claimed:<agent-id>` label + `## [claim]` comment, with a read-after-write confirm where the earliest claim wins and a 60-min stale-claim reclaim) and works in an **isolated git worktree** instead of the primary checkout. The claim is released on any failure exit (STOP/ESCALATE/hard-cap/abort) so the issue returns to the pool; the worktree is removed on merge or abort. This is Phase 1 of the parallel-multi-agent design ([#7](https://github.com/domek-labs/stagecrew/issues/7)) — no controller or ready-queue yet.
 
+**Worktree cleanup is non-fatal.** When `git worktree remove` fails (long paths / `node_modules` — even with `core.longpaths=true`), the loop does not abort: it prunes the git worktree registration, deletes the local branch, and reports the leftover directory to the user for manual removal, still reaching a terminal verdict. A recursive force-delete is **never** the prescribed fallback (it could destroy state another concurrent loop depends on).
+
+**State-tracker path is OS-portable.** The tracker file is resolved from the environment (`$TMPDIR` / `$TEMP`) with a per-OS default (`/tmp` on Linux/macOS, `%TEMP%` on Windows) instead of a hardcoded `/tmp`, so native tooling on Windows can open it. On Linux/macOS the default is still `/tmp`, so existing runs are unchanged.
+
+**Non-`origin` remotes.** Push, PR create, and branch cleanup use the repo registry's `git_remote` field (via the `{{git_remote}}` placeholder), falling back to `origin` when unset — so a repo whose GitHub working remote is not named `origin` is handled correctly.
+
+## Tester: scope-aware `smoke_test`
+
+`smoke_test` in AGENTS.md is **either** a plain string (unchanged) **or** a scope mapping (`backend` / `frontend` / `default`, plus optional `parallel_safe` and `scopes:`). The `/work-issue` Tester resolves the scope from the diff paths — against `components.code_globs`, or the mapping's own `scopes:` globs when no `components:` block is set — and runs only the matching command. A diff that matches no scope is skipped as "smoke test not applicable to this diff scope", with the reason named in the Tester stage comment. A `parallel_safe: false` smoke test (e.g. `docker compose up -d --force-recreate`) is skipped — with the reason recorded — when another active claim exists on the repo. The plain-string form is a full zero-behaviour-change fallback.
+
+## Closer: merge, CI baseline, and non-default `pr_base`
+
+The Closer applies three deterministic rules and **never terminates without a terminal verdict**:
+
+- **CI base-vs-PR baseline.** A red check blocks the merge only if it is green on `pr_base` and red on the PR (a newly introduced failure). Checks already red on the base are listed in the stage comment as pre-existing and non-blocking. If the base has no check runs to compare against, every red check blocks (fail safe).
+- **Never end silently while waiting on CI.** Pending checks are polled with a bounded cap (up to the 90-min wallclock cap); if still pending at the cap, the Closer exits with an explicit `ESCALATE: CI pending` verdict naming the PR number and the next step. In that state the claim is **held** (not released) — the PR is open and the work is done, so releasing would let another agent redo it. This is the deliberate contrast to release-on-failure, which is only for non-merge failures where no PR exists yet.
+- **Issue close when `pr_base` ≠ default branch.** `Closes #N` only auto-closes on a merge into the default branch. When `pr_base` diverges from the repo default branch, the Closer **explicitly closes** the issue after the merge (with a comment naming the PR and stating the change reaches the default branch at the next promotion) and removes the `claimed:<agent-id>` label so a later run does not misread a leftover claim as active. Where `pr_base` equals the default branch, behaviour is unchanged.
+
 ## Recommended companion MCPs (optional)
 
-Two MIT-licensed external MCPs make the loop richer. Neither is required — the skills call them opportunistically and fall back to plain `grep` / `ls` / no-op when the tool namespace is missing.
+Two MIT-licensed external MCPs make the loop richer. Neither is required — the skills call them opportunistically and fall back to plain `grep` / `ls` / no-op when the tool namespace is missing. **Code-graph failures never block a loop:** the `/work-issue` pre-flight distinguishes three non-blocking states — namespace absent, project unknown, and tool inconsistent (e.g. `list_projects` finds the project while `index_status` / `detect_changes` report "not found") — and in all three it skips the freshness check (noting the skip in the stage comment) and continues on grep-based discovery.
 
 - **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — local code-graph MCP (tree-sitter based). Used by `/init-agents` for architecture / conventions defaults, `/create-issue` for files-to-touch suggestions, and `/work-issue` in the Validator / Implementer / Critic stages for code-graph-backed evidence.
 - **[MemPalace](https://github.com/MemPalace/mempalace)** — verbatim knowledge-store MCP. The `/work-issue` Closer stage persists a loop summary (repo, PR, commit, Tester findings) as a "drawer" so future sessions can search prior decisions.

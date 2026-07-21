@@ -12,6 +12,22 @@ work-issue:
   commit_format: "conventional"                  # type(scope): description
   syntax_check: "node --check"                   # node | python -m py_compile | tsc --noEmit | ...
   smoke_test: "docker compose build && docker compose up -d --force-recreate"
+  # smoke_test accepts EITHER a plain string (above; unchanged behaviour) OR a
+  # scope mapping. The /work-issue Tester resolves the scope from the diff paths
+  # (against components.code_globs, or the mapping's own scopes: globs when no
+  # components: block is set) and runs only the matching command. A diff that
+  # matches no scope is skipped as "not applicable to this diff scope". Set
+  # parallel_safe: false for a container-recreating command so it is skipped
+  # (with a reason) when another loop holds an active claim on the repo.
+  #
+  # smoke_test:
+  #   backend: "pytest -q"
+  #   frontend: "pnpm --filter web test"
+  #   default: ""                              # empty = skip when no scope matches
+  #   parallel_safe: false                     # optional, default true
+  #   scopes:                                  # only needed if no components: block
+  #     backend:  ["api/**", "server/**", "**/*.py"]
+  #     frontend: ["web/**", "app/**", "**/*.tsx"]
   deploy_command: ""                             # optional, else skip
   linter: ""                                     # optional
 

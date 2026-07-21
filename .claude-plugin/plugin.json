@@ -1,6 +1,6 @@
 {
   "name": "stagecrew",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "stagecrew — agentic loop workflow. An autonomous multi-stage agent crew that specs, builds, tests, critiques and ships a GitHub issue. Spec-driven, never one-shot. Pure-reader: standards live in your repo's AGENTS.md, not in this plugin. Multi-type-system: code-loops + research-loops, dispatched per issue-label. Optional opt-in AGENTS.md fields: a component registry and a Playwright-driven visual reviewer gate for frontend issues.",
   "author": {
     "name": "Dominik Scheinecker",
