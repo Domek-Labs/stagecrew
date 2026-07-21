@@ -6,7 +6,7 @@
 
 **Pattern origin:** first end-to-end test in an internal bot project (2026-06-26).
 
-**Placeholders:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}` — substituted at render time.
+**Placeholders:** `{{slug}}`, `{{repo_path}}`, `{{issue_num}}`, `{{default_branch}}`, `{{topic_slug}}`, `{{date}}`, `{{secret_scan_pattern}}`, `{{commit_identity}}` — substituted at render time. `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent from AGENTS.md.
 
 ---
 
@@ -76,6 +76,13 @@
 >
 > #### Phase 5 — commit + push
 >
+> **Set the commit identity first** — if `{{commit_identity}}` is set (not `null`), run before committing:
+> ```bash
+> git config user.name "<commit_identity.name>"
+> git config user.email "<commit_identity.email>"
+> ```
+> Never author under a company/shared email. If `{{commit_identity}}` is `null`, use the ambient `git config`.
+>
 > ```bash
 > git add docs/research/{{topic_slug}}-{{date}}.md
 > # do NOT add debug edits
@@ -84,11 +91,11 @@
 >
 > ... findings summary ...
 >
-> Refs #{{issue_num}}
->
-> Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
+> Refs #{{issue_num}}"
 > git push -u origin research/{{topic_slug}}
 > ```
+>
+> **No `Co-authored-by:` trailer** and no bot footer (honor the `no_unconfigured_coauthors` hard-gate) — unless AGENTS.md explicitly configures one. GitHub appends co-author lines from the individual commits on squash-merge, so the commit must already be clean.
 >
 > ### Issue comment
 >

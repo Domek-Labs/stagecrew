@@ -57,8 +57,12 @@ work-issue:
   smoke_test: "<command>"             # e.g., "docker compose build && smoke"
   deploy_command: "<command>"
   linter: "<command>"
+  commit_identity:                    # optional — author identity for all loop commits
+    name: "Your Name"
+    email: "<id>+<user>@users.noreply.github.com"
   hard_gates:
     - "rule description"
+    - "no_unconfigured_coauthors"     # no `Co-authored-by:` trailer unless configured
   default_oos:
     - "..."
   ac_templates:
@@ -144,6 +148,8 @@ Before stage 1, check in this order — every failure is a **STOP verdict** (no 
      > AGENTS.md is incomplete. Missing fields: `<list>`. Please call `/init-agents --refine --repo <slug>` to add them.
 
    Note: empty lists (`[]`) and empty strings (`""`) count as set — `deploy_command: ""` is allowed, `deploy_command` missing is STOP.
+
+   **`commit_identity` is OPTIONAL** and is **not** part of this mandatory 11-field completeness check. An existing AGENTS.md without a `commit_identity` block must **not** STOP here — cache it as absent and fall back to the ambient `git config`. Only when present, cache its `name`/`email` for the Implementer/Closer to apply before committing.
 
 4. **Optional `components:` block** — if present at the top level of the frontmatter, cache it too. Fields when present: `registry_path` (string, required), `code_globs` (list of glob strings, required), `usage_policy` (`prefer_existing` | `strict`, default `prefer_existing`), `scope` (`frontend` | `backend` | `both`, default `both`). Absence is fine — the loop then skips all registry gates cleanly (zero behavior change). Presence with missing required fields → STOP with a hint to `/init-agents --refine`.
 
@@ -261,7 +267,9 @@ Important: **all standards values in the briefings are placeholders** (`<branch_
 | `code` (default) | `references/subagent-briefs/code-implementer.md` |
 | `research` | `references/subagent-briefs/research-implementer.md` |
 
-The skill loads the matching brief file, replaces placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`) from the AGENTS.md cache + state tracker, and dispatches it as the subagent briefing.
+The skill loads the matching brief file, replaces placeholders (`{{branch_pattern}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{secret_scan_pattern}}`, `{{issue_num}}`, `{{repo_path}}`, `{{slug}}`, `{{default_branch}}`, `{{commit_format}}`, `{{commit_identity}}`) from the AGENTS.md cache + state tracker, and dispatches it as the subagent briefing. `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent from AGENTS.md.
+
+**Commit identity (all commits in stage 2 and stage 5):** if AGENTS.md carries a `commit_identity` block, the Implementer and Closer MUST run `git config user.name "<name>"` and `git config user.email "<email>"` from it **before** any commit. Never use a company/shared email as author. Never add a `Co-authored-by:` trailer or bot footer to a commit message or PR body (honor the `no_unconfigured_coauthors` hard-gate) — GitHub appends co-author lines from the squashed commits on squash-merge, so the individual commits must already be clean.
 
 **Default `secret_scan_pattern`** (when not set via issue override):
 ```
@@ -361,6 +369,7 @@ Sits **between Tester (build green) and Critic** — the browser only spins up o
 ### Stage 5 — Closer (type routing)
 
 **Briefing (template):**
+> 0. **Commit identity:** if AGENTS.md carries a `commit_identity` block, run `git config user.name "<name>"` and `git config user.email "<email>"` from it before any commit you make in this stage. Never a company/shared email as author. Do **not** add a `Co-authored-by:` trailer or bot footer to any commit or to the PR body — honor `no_unconfigured_coauthors` (GitHub appends co-author lines from the squashed commits on squash-merge, so each individual commit must already be clean).
 > 1. Create a PR with body (summary, standards used from AGENTS.md, test plan, "Closes #N", loop-workflow process block). Base: `<pr_base>`.
 >    - **`code` loop:** PR title `<commit_format>`-compatible (e.g., `feat(scope): ...`).
 >    - **`research` loop:** PR title `research(<topic>): findings + follow-up issue spec`.

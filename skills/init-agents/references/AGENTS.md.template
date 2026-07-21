@@ -12,13 +12,18 @@ work-issue:
   commit_format: "conventional"                  # type(scope): description
   syntax_check: "node --check"                   # node | python -m py_compile | tsc --noEmit | ...
   smoke_test: "docker compose build && docker compose up -d --force-recreate"
-  deploy_command: ""                             # optional, sonst skip
+  deploy_command: ""                             # optional, else skip
   linter: ""                                     # optional
 
+  commit_identity:                                 # optional — author identity for all loop commits
+    name: "Your Name"
+    email: "<id>+<user>@users.noreply.github.com"  # never a company/shared email
+
   hard_gates:
-    - "Kein direkter Edit auf main"
-    - "Alle MCP-Tools brauchen ein Test-Beispiel im Doc-Block"
-    - "Keine neuen Secrets im Repo"
+    - "No direct edit on main"
+    - "Every MCP tool needs a test example in its doc block"
+    - "No new secrets in repo"
+    - "no_unconfigured_coauthors"                  # no `Co-authored-by:` trailer in commits/PRs unless explicitly configured (prevents bot/foreign accounts becoming contributors; GitHub appends co-author lines from individual commits on squash-merge, so individual commits must be clean)
 
   default_oos:
     - "Multi-User-Support"

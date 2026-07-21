@@ -4,7 +4,7 @@
 
 **Loaded by:** `skills/work-issue/SKILL.md` for the subagent-brief selection.
 
-**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}`, `{{components}}` — substituted at render time from the AGENTS.md cache + state tracker. `{{components}}` is `null` when the optional `components:` block is absent from AGENTS.md.
+**Placeholders:** `{{branch_pattern}}`, `{{commit_format}}`, `{{syntax_check}}`, `{{hard_gates}}`, `{{default_branch}}`, `{{repo_path}}`, `{{slug}}`, `{{issue_num}}`, `{{secret_scan_pattern}}`, `{{components}}`, `{{commit_identity}}` — substituted at render time from the AGENTS.md cache + state tracker. `{{components}}` is `null` when the optional `components:` block is absent from AGENTS.md; `{{commit_identity}}` is `null` when the optional `commit_identity:` block is absent.
 
 ---
 
@@ -56,6 +56,13 @@
 >    Match = **ABORT** with a clear hint message. No commit.
 >
 > 6. **Commit**
+>    **Set the commit identity first** — if `{{commit_identity}}` is set (not `null`), run before committing:
+>    ```bash
+>    git config user.name "<commit_identity.name>"
+>    git config user.email "<commit_identity.email>"
+>    ```
+>    Never author under a company/shared email. If `{{commit_identity}}` is `null`, use the ambient `git config`.
+>
 >    Format per `{{commit_format}}` (typically `conventional`):
 >    ```
 >    <type>(<scope>): <short summary>
@@ -63,9 +70,8 @@
 >    <body>
 >
 >    Refs #{{issue_num}}
->
->    Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 >    ```
+>    **No `Co-authored-by:` trailer** and no bot footer (honor the `no_unconfigured_coauthors` hard-gate) — unless AGENTS.md explicitly configures one. GitHub appends co-author lines from the individual commits on squash-merge, so the commit must already be clean.
 >
 > 7. **Push**
 >    ```bash

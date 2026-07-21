@@ -1,6 +1,6 @@
 ---
 name: init-agents
-description: "Create AGENTS.md (per-repo coding-standards spec) for a Git repo. YAML frontmatter with 11 v3 fields (branch_pattern, default_branch, pr_base, commit_format, syntax_check, smoke_test, deploy_command, linter, hard_gates, default_oos, ac_templates) + Markdown body (architecture, code conventions, test conventions, known gotchas). codebase-memory provides intelligent defaults from the repo cluster. Mandatory bootstrap before the first /work-issue run in a repo. Triggers: /init-agents, init agents, create agents.md, coding spec bootstrap, initialize repo standards."
+description: "Create AGENTS.md (per-repo coding-standards spec) for a Git repo. YAML frontmatter with 11 mandatory v3 fields (branch_pattern, default_branch, pr_base, commit_format, syntax_check, smoke_test, deploy_command, linter, hard_gates, default_oos, ac_templates) plus the optional commit_identity field (12 total) + Markdown body (architecture, code conventions, test conventions, known gotchas). codebase-memory provides intelligent defaults from the repo cluster. Mandatory bootstrap before the first /work-issue run in a repo. Triggers: /init-agents, init agents, create agents.md, coding spec bootstrap, initialize repo standards."
 ---
 
 # /init-agents — Create AGENTS.md for a repo
@@ -45,9 +45,9 @@ Run in this order — on the first failure, ABORT with a clear hint message.
 
 ## Dialog workflow (--interactive, default)
 
-The user is walked through all 11 v3 frontmatter fields. For each field, show a concrete default suggestion from codebase-memory + heuristic — the user accepts or overrides.
+The user is walked through all 11 mandatory v3 frontmatter fields plus the optional `commit_identity` field (12 total). For each field, show a concrete default suggestion from codebase-memory + heuristic — the user accepts or overrides.
 
-### 11 v3 frontmatter fields
+### 11 mandatory v3 frontmatter fields
 
 | Field | Default source / heuristic |
 |-------|----------------------------|
@@ -59,9 +59,25 @@ The user is walked through all 11 v3 frontmatter fields. For each field, show a 
 | `smoke_test` | from `docker-compose.yml` (if present) → `docker compose build && docker compose up -d --force-recreate`. Otherwise from `package.json scripts.test` or `pyproject.toml scripts.test`. Otherwise empty |
 | `deploy_command` | empty (user decides) |
 | `linter` | from the repo: detect `eslint`/`ruff`/`black` configs |
-| `hard_gates` | list, defaults: "No direct edits on default_branch", "No new secrets in repo", "All MCP tools need a test example in their doc block" |
+| `hard_gates` | list, defaults: "No direct edits on default_branch", "No new secrets in repo", "All MCP tools need a test example in their doc block", "no_unconfigured_coauthors" |
 | `default_oos` | list, empty by default — the user adds repo-specific entries |
 | `ac_templates` | list, defaults: "Code passes <syntax_check>", "Documentation in README/CLAUDE.md updated", "No new secrets in repo (secret check passed)" |
+
+### Optional field: `commit_identity` (author identity, opt-in)
+
+`commit_identity` is the **12th** frontmatter field (the only optional one in the `work-issue:` namespace). It fixes the author identity used for every commit the loop makes, so attribution no longer depends on ambient `git config` or assistant memory. Shape:
+
+```yaml
+commit_identity:
+  name: "Your Name"
+  email: "<id>+<user>@users.noreply.github.com"   # never a company/shared email
+```
+
+`/init-agents` **prompts** for it and offers a default derived from the repo owner (`gh api user --jq '.id, .login'` → `<id>+<login>@users.noreply.github.com`). The user can accept, edit, or SKIP. `SKIP` = block omitted; the loop then falls back to the ambient `git config` (so leaving it out is safe and changes nothing).
+
+When set, the `/work-issue` Implementer and Closer run `git config user.name` / `git config user.email` from it **before every commit**. This pairs with the `no_unconfigured_coauthors` hard-gate:
+
+- **`no_unconfigured_coauthors`** — no `Co-authored-by:` trailer in commit messages or PR bodies unless explicitly configured in AGENTS.md. This prevents a bot or a foreign account from being pulled in as a repo contributor. Note: GitHub appends co-author lines from the individual commits when a PR is squash-merged, so the individual commits must already be clean. `/init-agents` adds this gate to the `hard_gates` default list.
 
 ### Optional field: `components:` (component-registry, opt-in)
 
@@ -107,7 +123,8 @@ Defaults:
 - **smoke_test**: from `docker-compose.yml` / `package.json` / `pyproject.toml`
 - **deploy_command**: empty
 - **linter**: from detected config files
-- **hard_gates**: 3 standard gates (see above)
+- **commit_identity**: default derived from the repo owner (`gh api user --jq '.id, .login'` → `<id>+<login>@users.noreply.github.com`); the user confirms in the interactive dialog. Omitted only if `--auto` cannot resolve an owner.
+- **hard_gates**: standard gates including `no_unconfigured_coauthors` (see above)
 - **default_oos**: empty
 - **ac_templates**: 3 standard templates (see above)
 - **body sections**: populated from `get_architecture` + `search_code`; known gotchas empty
@@ -134,7 +151,7 @@ Defaults:
    ```
 4. **Branch + commit + PR + merge** (same as `/work-issue` Implementer/Closer):
    - Branch: `feature/init-agents-md` (or per `branch_pattern`)
-   - Commit message: `chore(agents): add AGENTS.md (init via /init-agents)` with `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`
+   - Commit message: `chore(agents): add AGENTS.md (init via /init-agents)`. If `commit_identity` was set in the dialog, `git config user.name`/`user.email` from it before committing. **No `Co-authored-by:` trailer** (honor `no_unconfigured_coauthors`).
    - PR body: short, refer to the AGENTS.md format
    - Squash-merge (delete-branch)
 5. **Repo-registry update (mandatory step)** — live file `~/.claude/work-issue-paths.yaml`:
@@ -176,7 +193,10 @@ work-issue:
   smoke_test: "<command>"
   deploy_command: "<command>"
   linter: "<command>"
-  hard_gates: ["..."]
+  commit_identity:                    # optional
+    name: "<name>"
+    email: "<id>+<user>@users.noreply.github.com"
+  hard_gates: ["...", "no_unconfigured_coauthors"]
   default_oos: ["..."]
   ac_templates: ["..."]
 ---

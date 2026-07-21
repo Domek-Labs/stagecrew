@@ -23,13 +23,17 @@ That is the entire loop. Bootstrap → Genesis → Execution.
 
 | Skill | Phase | What it does |
 |-------|-------|--------------|
-| `/init-agents` | Bootstrap | Writes `AGENTS.md` at the repo root: YAML frontmatter with 11 standards fields (branch pattern, syntax check, smoke test, hard gates, AC templates, ...) + Markdown body (architecture, conventions, known gotchas). One-time per repo. Codebase-memory provides intelligent defaults. |
+| `/init-agents` | Bootstrap | Writes `AGENTS.md` at the repo root: YAML frontmatter with 11 mandatory standards fields (branch pattern, syntax check, smoke test, hard gates, AC templates, ...) plus the optional `commit_identity` field — 12 total — + Markdown body (architecture, conventions, known gotchas). One-time per repo. Codebase-memory provides intelligent defaults. |
 | `/create-issue` | Genesis | Turns an idea into a fully-specified GitHub issue with spec-standard sections (Idea/Spec/AC/Files-To-Touch/Test-Plan/Out-of-Scope). Auto-injects AGENTS.md's `ac_templates`. Calls `/init-agents` as a pre-step if AGENTS.md is missing. |
 | `/work-issue` | Execution | Drives a specified issue through 5 stages (Validator → Implementer → Tester → Critic → Closer) until merge. Pure-reader: all standards come from AGENTS.md. Auto-PR, auto-merge on APPROVE. Issue comments serve as the audit log. |
 
 ## Umbrella Skill: `/loop`
 
 If you do not know which sub-skill you need, just call `/loop` — it asks one clarifying question and routes you. Triggers on "loop", "loop workflow", "work issue", "spec build", "coding loop", "github workflow".
+
+## Reference Skill: `github`
+
+A convention reference (not a loop phase) that bundles the git/gh interaction rules the stages follow: use `gh` / the GitHub API for writes when the local `.git` is read-only, set the commit author from AGENTS.md `commit_identity`, never a company/shared email, no `Co-authored-by:` trailers unless configured (`no_unconfigured_coauthors`), PR body conventions (`Closes #`, standards block), and the squash-merge co-author caveat. See `skills/github/SKILL.md`.
 
 ## Loop Types
 
@@ -59,6 +63,10 @@ research loops ship a findings doc plus a follow-up implementation-issue spec
 An **opt-in** AGENTS.md YAML frontmatter block that declares a repo's canonical component set (frontend components, backend value objects, aggregates). When set, the loop enforces reuse: the Validator gates in-scope issues against the registry, the Implementer refuses to inline duplicates, and the Critic runs a dupe-detection pass over the declared code globs. `usage_policy` picks the enforcement level — `prefer_existing` warns, `strict` STOPs and requires an ADR link.
 
 Absent block → zero behavior change. Full schema and enforcement details in `AGENTS.md` under "Component Registry", template in `skills/init-agents/references/components-registry-template.md`, design rationale in `docs/adr/0001-components-registry.md`.
+
+### Commit attribution (`commit_identity` field + `no_unconfigured_coauthors` gate)
+
+The optional `commit_identity` field (`name` + `email`) in the AGENTS.md `work-issue:` namespace fixes the author identity used for every loop commit, so attribution never depends on ambient `git config` or assistant memory. When set, the `/work-issue` Implementer and Closer run `git config user.name`/`user.email` from it before every commit. It pairs with the `no_unconfigured_coauthors` hard-gate: no `Co-authored-by:` trailer or bot footer in commits/PRs unless explicitly configured — this stops a bot or foreign account from being pulled in as a contributor (GitHub appends co-author lines from the squashed commits on squash-merge, so each individual commit must already be clean). Absent → falls back to the ambient `git config`; zero behavior change.
 
 ## Recommended companion MCPs (optional)
 
