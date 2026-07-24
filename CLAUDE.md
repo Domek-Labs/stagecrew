@@ -14,18 +14,27 @@ with a test matrix). Each type has its own issue template and subagent brief —
 ```
 1. /init-agents --repo <owner>/<slug>     # bootstrap AGENTS.md (once per repo)
 2. /create-issue "<your idea>"            # idea → fully-specified GitHub issue
-3. /work-issue <num>                      # issue → merged PR via 5 stages
+3. /plan-issues                           # assign parallel-safety waves (optional, recommended for multi-issue runs)
+4. /work-issue <num>                      # issue → merged PR via 5 stages
+5. /close-out                             # merge PRs in wave order, close issues
 ```
 
-That is the entire loop. Bootstrap → Genesis → Execution.
+Or use the single-command entry point:
 
-## The 3 Skills
+```
+/run-loop "<your idea>"                   # create → plan → [confirm] → work
+```
+
+## The 6 Skills
 
 | Skill | Phase | What it does |
 |-------|-------|--------------|
 | `/init-agents` | Bootstrap | Writes `AGENTS.md` at the repo root: YAML frontmatter with 11 mandatory standards fields (branch pattern, syntax check, smoke test, hard gates, AC templates, ...) plus the optional `commit_identity` field — 12 total — + Markdown body (architecture, conventions, known gotchas). One-time per repo. Codebase-memory provides intelligent defaults. |
 | `/create-issue` | Genesis | Turns an idea into a fully-specified GitHub issue with spec-standard sections (Idea/Spec/AC/Files-To-Touch/Test-Plan/Out-of-Scope). Auto-injects AGENTS.md's `ac_templates`. Calls `/init-agents` as a pre-step if AGENTS.md is missing. |
+| `/plan-issues` | Planning | Assigns parallel-safety **waves** to open issues before work starts. Detects file-level collisions, dependency order, stale blocked labels, and migration-number clashes. Outputs a wave plan for human review; writes `wave:<n>` labels on confirmation. Position in pipeline: after `create-issue`, before `work-issue`. |
 | `/work-issue` | Execution | Drives a specified issue through 5 stages (Validator → Implementer → Tester → Critic → Closer) until merge. Pure-reader: all standards come from AGENTS.md. Auto-PR, auto-merge on APPROVE. Issue comments serve as the audit log. |
+| `/close-out` | Merge | Merges completed PRs in wave order, auto-resolves additive conflicts, closes issues, and cleans up branches. No GitHub Projects dependency — tracks state via issue/PR state and `wave:<n>` labels only. |
+| `/run-loop` | Pipeline | Single-command entry point: chains `create-issue → plan-issues → [human confirms] → work-issue` wave by wave. Reduces the common case to one command + one confirmation. `/close-out` is presented as the explicit next step. |
 
 ## Umbrella Skill: `/loop`
 
@@ -96,6 +105,18 @@ Two MIT-licensed external MCPs make the loop richer. Neither is required — the
 
 - **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — local code-graph MCP (tree-sitter based). Used by `/init-agents` for architecture / conventions defaults, `/create-issue` for files-to-touch suggestions, and `/work-issue` in the Validator / Implementer / Critic stages for code-graph-backed evidence.
 - **[MemPalace](https://github.com/MemPalace/mempalace)** — verbatim knowledge-store MCP. The `/work-issue` Closer stage persists a loop summary (repo, PR, commit, Tester findings) as a "drawer" so future sessions can search prior decisions.
+
+## Full pipeline at a glance
+
+```
+Bootstrap (once per repo)   Genesis          Planning        Execution        Merge
+       │                       │                │                │               │
+       ▼                       ▼                ▼                ▼               ▼
+  /init-agents   →   /create-issue   →   /plan-issues   →   /work-issue   →   /close-out
+  (AGENTS.md)      (GitHub issues)    (wave labels)      (5-stage loop)    (ordered merge)
+
+Or all at once: /run-loop "<idea>"  →  [confirm plan]  →  loops fire  →  /close-out
+```
 
 ## Roadmap
 
